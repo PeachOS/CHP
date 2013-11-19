@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -65,20 +66,11 @@ public class DataBaseFunctions {
 	 */
 	public static Connection getWebConnection() {
 		if (!loaded) {
-			Properties prop = new Properties();
-			try {
-				// load a properties file from class path, inside static method
-				prop.load(new FileInputStream("connection.properties"));
-
-				URL = prop.getProperty("db_url");
-				PORT = prop.getProperty("db_port");
-				DATABASE = prop.getProperty("db_database");
-				USER = prop.getProperty("db_user");
-				PASSWORD = prop.getProperty("db_password");
-
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
+				URL = "localhost";
+				PORT = "5433";
+				DATABASE = "chpv1_small";
+				USER = "postgres";
+				PASSWORD = "postgres";
 			loaded = true;
 		}
 		try {
@@ -747,7 +739,7 @@ public class DataBaseFunctions {
 		Connection con = getWebConnection();
 		// testAddOrder(con);
 		// testUpdateDrug(con);
-		// testGetCategories(con);
+		 testGetCategories(con);
 		// testGetOrderSummary(con);
 		// tryNewStuff();
 		// testGetDrugs(con);
