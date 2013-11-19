@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+
+<project name="PortletTest-portlet" basedir="." default="deploy">
+	<import file="C:\liferay-plugins-sdk-6.0.6\portlets/build-common-portlet.xml" />
+</project>
+
