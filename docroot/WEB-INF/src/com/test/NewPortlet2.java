@@ -486,11 +486,11 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONObject q2 = new JSONObject();
 		JSONObject q3 = new JSONObject();
 		q1.put("id", "11");
-		q1.put("question", "Does the child have coughing or difficulty breathing?");
+		q1.put("question", "Classify cough or difficult breathing");
 		q2.put("id", "22");
-		q2.put("question", "Does the child have diarrhea?");
+		q2.put("question", "Classify diarrhea");
 		q3.put("id", "33");
-		q3.put("question", "Does the child have fever?");
+		q3.put("question", "Classify fever");
 		list.add(q1);
 		list.add(q2);
 		list.add(q3);
@@ -499,6 +499,73 @@ public class NewPortlet2 extends MVCPortlet {
         httpResponse.setContentType("application/json;charset=UTF-8");
         ServletResponseUtil.write(httpResponse, list.toJSONString());
 	}
+	
+	@SuppressWarnings("unchecked")
+	@ProcessAction(name = "getSubQuestions")
+	public void getSubQuestions(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		System.out.println("getSubQuestions");
+		JSONObject responseJSON = new JSONObject();
+		JSONArray list = new JSONArray();
+		
+		if (request.getParameter("question_id").equals("2")) {
+			
+			responseJSON.put("title", "Cough or difficult breathing classified");
+			responseJSON.put("next", "3");
+			JSONObject q1 = new JSONObject();
+			JSONObject q2 = new JSONObject();
+			JSONObject q3 = new JSONObject();
+			q1.put("id", "11");
+			q1.put("question", "Are there any general danger signs present?");
+			q1.put("description", "Child is unable to drink or breastfeed;child vomits everything; child has had or is having convulsions; " +
+					"child is lethargic or unconscious.");
+			q2.put("id", "22");
+			q2.put("question", "Is there chest indrawing?");
+			q2.put("description", "If present, give a trial of rapid acting inhaled bronchodilator for up to three times 15-20 minutes apart. " +
+					"Count the breaths again and look for chest indrawing again, then classify.");
+			q3.put("id", "33");
+			q3.put("question", "Is there stridor in a calm child?");
+			list.add(q1);
+			list.add(q2);
+			list.add(q3);
+		}
+		else {
+			responseJSON.put("title", "Classify cough or difficult breathing");
+			responseJSON.put("next", "2");
+			JSONObject q1 = new JSONObject();
+			JSONObject q2 = new JSONObject();
+			q1.put("id", "11");
+			q1.put("question", "Does the child have fast breathing?");
+			q1.put("description", "If the child is 2-12 months old and they breathe 50 breaths per minute or more; " +
+					"if the child 1-5 years old and they breathe 40 breaths per minute or more <p/>");
+			q2.put("id", "22");
+			q2.put("question", "Does the child have a cough?");
+			list.add(q1);
+			list.add(q2);
+		}
+		
+		responseJSON.put("questions", list);
+			
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+	    httpResponse.setContentType("application/json;charset=UTF-8");
+	    ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
+	}
+	
+	@SuppressWarnings("unchecked")
+	@ProcessAction(name = "getTreatment")
+	public void getTreatment(ActionRequest request, ActionResponse response)
+			throws PortletException, IOException {
+		
+		JSONObject responseJSON = new JSONObject();
+		responseJSON.put("title","Severe pneumonia or very severe disease");
+		responseJSON.put("treatment", "Give first dose of an appropriate antibiotic; Refer URGENTLY to hospital.");
+		
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+	    httpResponse.setContentType("application/json;charset=UTF-8");
+	    ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
+	
+	}
 		
 	// Very necessary function, please don't delete anything in here
 	@Override
@@ -506,10 +573,11 @@ public class NewPortlet2 extends MVCPortlet {
             ActionRequest actionRequest, ActionResponse actionResponse)
         throws IOException, PortletException {
 		
+		System.out.println("processAction");
+		
         PortletPreferences prefs = actionRequest.getPreferences();
         String actionName = actionRequest.getParameter("actionName");
-
-        // Go to next subcategories page
+        boolean switchJSP = false;
         
         if (actionName != null) {
         	
@@ -518,15 +586,13 @@ public class NewPortlet2 extends MVCPortlet {
         		
         		String catId1 = actionRequest.getParameter("category_id");
                 if (catId1 != null) {
-                    prefs.setValue("category_id", catId1);
-                    prefs.store();
+                    actionRequest.setAttribute("category_id", catId1);
                 }
         	}
         	else if (actionName.equals("materials")) {
         		String catId2 = actionRequest.getParameter("category_id");
                 if (catId2 != null) {
-                    prefs.setValue("category_id", catId2);
-                    prefs.store();
+                    actionRequest.setAttribute("category_id", catId2);
                 }
         	}
         	else if (actionName.equals("goToMaterial")) {
@@ -535,11 +601,32 @@ public class NewPortlet2 extends MVCPortlet {
         			System.out.println(key + ": " + params.get(key));
         		}
         	}
+        	else if (actionName.equals("subQuestions")) {
+        		String questionId = actionRequest.getParameter("question_id");
+                if (questionId != null) {
+                	actionRequest.setAttribute("question_id", questionId);
+                }
+                
+                String title = actionRequest.getParameter("title");
+                if (title != null) {
+                	actionRequest.setAttribute("title", title);
+                }
+                
+                // hackery
+                String next = actionRequest.getParameter("question_id");
+                if (next != null && next.equals("3")) {
+                	System.out.println("switching...");
+                	switchJSP = true;
+                }
+        	}
         }
         
         String jspPage = actionRequest.getParameter("jspPage");
         if (jspPage != null) {
         	actionResponse.setRenderParameter("jspPage", jspPage);
+        }
+        if (switchJSP) {
+        	actionResponse.setRenderParameter("jspPage", "/html/newportlet2/diagnose.jsp");
         }
         
         super.processAction(actionRequest, actionResponse);

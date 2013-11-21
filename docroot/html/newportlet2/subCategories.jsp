@@ -10,6 +10,7 @@
 	<portlet:param name="actionName" value="materials"/>
 </portlet:actionURL>
 
+<portlet:defineObjects/>
 <%
 String catId = (String) request.getAttribute("category_id");
 %>
@@ -18,6 +19,7 @@ String catId = (String) request.getAttribute("category_id");
 <head>
 <script type="text/javascript">
 $(document).ready(function() {
+	console.log("category_id: " + '<%=catId%>');
 	var params = {"category_id" : '<%=catId%>'};
 	var request = jQuery.getJSON('<%=getSubCategories%>', params);
 	request.done(function(data) {

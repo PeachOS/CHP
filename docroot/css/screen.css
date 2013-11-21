@@ -264,7 +264,7 @@ p {padding: 5px 0;}
 	height: 1000px;
 }
 
-.subCategoriesBody, #materialsBody {
+.subCategoriesBody, #materialsBody, .subQuestionsBody, #diagnoseBody {
 	padding: 50px 50px 50px 50px;
 	background-color: #FFF;
 	border: 1px solid #DEDEDE;
@@ -275,31 +275,37 @@ p {padding: 5px 0;}
 }
 
 #categories {
-	width: 45%;
+	width: 40%;
 	float: left;
 	padding-left: 5%;
 	padding-top: 75px;
 }
 
-#categoriesTitle {
+#categoriesTitle, #questionsTitle, #diagnoseTitle {
 	color: #eb8f00;
 	text-shadow: 1px 1px #DEDEDE;
 	font-size: 30px;
 }
 
 #questions {
-	width: 45%;
+	width: 40%;
 	float: right;
 	padding-right: 5%;
 	padding-top: 75px;
 }
 
-.categorySpan {
+.categorySpan, .questionSpan{
 	margin-left: 10px;
 	margin-right: 10px;
 }
 
-.categoryForm {
+.categoryForm. .questionForm {
 	margin-bottom: 20px;
 	width: 150px;
+}
+
+.questionsSpan {
+	color: #eb8f00;
+	font-size: 20px;
+	text-shadow: 1px 1px #DEDEDE;
 }

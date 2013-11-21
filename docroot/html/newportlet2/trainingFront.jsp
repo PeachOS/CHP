@@ -20,6 +20,10 @@ ActionRequest.ACTION_NAME, "search");*/
 	<portlet:param name="jspPage" value="/html/newportlet2/subCategories.jsp"/>
 	<portlet:param name="actionName" value="subCategories"/>
 </portlet:actionURL>
+<portlet:actionURL var="subQuestionsURL">
+	<portlet:param name="jspPage" value="/html/newportlet2/subQuestions.jsp"/>
+	<portlet:param name="actionName" value="subQuestions"/>
+</portlet:actionURL>
 
 <html>
 <head>
@@ -77,21 +81,31 @@ $(document).ready(function() {
 				var questionForm = $("<form>");
 				questionForm
 					.addClass("questionForm")
+					.attr("name", "questionForm_" + i)
 					.attr("method","POST")
-					.attr("action","<%=subCategoriesURL.toString()%>")
+					.attr("action","<%=subQuestionsURL.toString()%>")
 					.appendTo(questionsSpan);
 				var questionLink = $("<a>");
+				var hrefStr = "javascript:document.forms['questionForm_" + i + "'].submit()"; 
 				questionLink
 					.addClass("questionLink")
-					.attr("href","javascript:document.forms['test'].submit()")
+					.attr("href",hrefStr)
 					.attr("id","question_" + i)
+					.attr("name", "title")
 					.html(data[i].question)
+					.attr("value", data[i].question)
 					.appendTo(questionForm);
-				var catId = $("<input>");
-				catId
+				var questionId = $("<input>");
+				questionId
 					.attr("type","hidden")
 					.attr("name", "question_id")
 					.attr("value", data[i].id)
+					.appendTo(questionForm);
+				var title = $("<input>");
+				title
+					.attr("type","hidden")
+					.attr("name", "title")
+					.attr("value", data[i].question)
 					.appendTo(questionForm);
 			};
 		});
@@ -122,8 +136,9 @@ $(function() {
 <span id="categoriesTitle">Categories for training materials:</span>
 <p/>
 </div>
-<div id="questions"></div>
+<div id="questions">
 <span id="questionsTitle">What symptoms does the patient have?</span>
+</div>
 </div>
 
 </body>
