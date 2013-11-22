@@ -264,7 +264,7 @@ p {padding: 5px 0;}
 	height: 1000px;
 }
 
-.subCategoriesBody, #materialsBody, .subQuestionsBody, #diagnoseBody {
+.subCategoriesBody, #materialsBody, #subQuestionsBody, #diagnoseBody {
 	padding: 50px 50px 50px 50px;
 	background-color: #FFF;
 	border: 1px solid #DEDEDE;
@@ -281,7 +281,7 @@ p {padding: 5px 0;}
 	padding-top: 75px;
 }
 
-#categoriesTitle, #questionsTitle, #diagnoseTitle {
+#categoriesTitle, .questionsTitle, #diagnoseTitle {
 	color: #eb8f00;
 	text-shadow: 1px 1px #DEDEDE;
 	font-size: 30px;

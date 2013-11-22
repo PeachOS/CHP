@@ -530,6 +530,10 @@ public class NewPortlet2 extends MVCPortlet {
 			list.add(q2);
 			list.add(q3);
 		}
+		else if (request.getParameter("question_id").equals("3")) {
+			getTreatment(request, response);
+			return;
+		}
 		else {
 			responseJSON.put("title", "Classify cough or difficult breathing");
 			responseJSON.put("next", "2");

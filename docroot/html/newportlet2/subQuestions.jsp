@@ -26,94 +26,111 @@ String title = (String) request.getAttribute("title");
 <head>
 <script type="text/javascript">
 $(document).ready(function() {
+	q_index = 0;
 	console.log("question_id: "+'<%=questionId%>');
 	var params = {"question_id" : '<%=questionId%>'};
 	var request = jQuery.getJSON('<%=getSubQuestions%>', params);
 	request.done(function(data) {
-		console.log(data);
-		$("#questionsTitle").html(data.title);
-		var questionsDiv = document.getElementById("subQuestions");
-		for (var i in data.questions) {
-			
-			// Question
-			var qh = $("<h3>");
-			qh
-				.html(data.questions[i].question)
-				.appendTo(questionsDiv);
-			
-			// Description how to measure symptom
-			
-			var qAnsDiv = $("<div>");
-			qAnsDiv
-				.appendTo(questionsDiv);
-			var qAnsP = $("<p>");
-			qAnsP
-				.html(data.questions[i].description)
-				.appendTo(qAnsDiv);
-			$("<p>").appendTo(qAnsP);
-			
-			// Yes/No radio buttons
-			var ans1 = $("<input>");
-			ans1
-				.attr("type","radio")
-				.attr("name","ans_" + i)
-				.attr("id","ans_" + i + "1")
-				.attr("question_id",data.questions[i].id)
-				.appendTo(qAnsP);
-			var ansLbl1 = $("<label>");
-			ansLbl1
-				.attr("for","ans_" + i + "1")
-				.text("Yes")
-				.appendTo(qAnsP);
-			$("<p>").appendTo(qAnsP);
-			var ans2 = $("<input>");
-			ans2
-				.attr("type","radio")
-				.attr("name","ans_" + i)
-				.attr("id","ans_" + i + "2")
-				.attr("question_id",data.questions[i].id)
-				.appendTo(qAnsP);
-			var ansLbl2 = $("<label>");
-			ansLbl2
-				.attr("for","ans_" + i + "2")
-				.text("No")
-				.appendTo(qAnsP);
-		};
-		$("#subQuestions").accordion();
-				
-		var nextForm=$("<form>");
-		nextForm
-			.attr("action", "<%=subQuestionsURL.toString()%>")
-			.attr("method","POST")
-			.appendTo(questionsDiv);
-		var nextBtn = $("<input>");
-		nextBtn
-			.attr("type", "submit")
-			.attr("id","nextBtn")
-			.attr("value","Next")
-			.appendTo(nextForm);
-		var questionId = $("<input>");
-		questionId
-			.attr("type","hidden")
-			.attr("name", "question_id")
-			.attr("value", data.next)
-			.appendTo(nextForm);
+		displayQuestions(data);
 	});
 });
 
-$(document).on("click","#nextBtn",function(){
-	var params = {"page" : "subQuestions.jsp", "question_id" : $(this).attr("question_id")};
-	
+$(document).on("click",".nextBtn",function(){
+	q_index += 1;
+	var params = {"question_id" : $(this).attr("question_id")};
+	var request = $.getJSON('<%=getSubQuestions%>', params);
+	request.done(function(data) {
+		displayQuestions(data);
+	});
 });
+
+function displayQuestions(data) {
+	console.log(data);
+	
+	var mainDiv = document.getElementById("subQuestionsBody");
+	var titleSpan = $("<span>");
+	titleSpan
+		.html(data.title)
+		.addClass("questionsTitle")
+		.appendTo(mainDiv);
+	
+	var treatmentText = data.treatment;
+	if (treatmentText != null) {
+		var subsection = $("<div>");
+		subsection
+			.addClass("treatmentText")
+			.html(treatmentText)
+			.appendTo(mainDiv);
+		return;
+	}
+	
+	var subsection = $("<div>");
+	subsection
+		.addClass("questionSet")
+		.attr("id","questionSet_" + q_index)
+		.appendTo(mainDiv);
+	
+	for (var i in data.questions) {
+		
+		// Question
+		var qh = $("<h3>");
+		qh
+			.html(data.questions[i].question)
+			.appendTo(subsection);
+		
+		// Description how to measure symptom
+		
+		var qAnsDiv = $("<div>");
+		qAnsDiv
+			.appendTo(subsection);
+		var qAnsP = $("<p>");
+		qAnsP
+			.html(data.questions[i].description)
+			.appendTo(qAnsDiv);
+		$("<p>").appendTo(qAnsP);
+		
+		// Yes/No radio buttons
+		var ans1 = $("<input>");
+		ans1
+			.attr("type","radio")
+			.attr("name","ans_" + i)
+			.attr("id","ans_" + i + "1")
+			.attr("question_id",data.questions[i].id)
+			.appendTo(qAnsP);
+		var ansLbl1 = $("<label>");
+		ansLbl1
+			.attr("for","ans_" + i + "1")
+			.text("Yes")
+			.appendTo(qAnsP);
+		$("<p>").appendTo(qAnsP);
+		var ans2 = $("<input>");
+		ans2
+			.attr("type","radio")
+			.attr("name","ans_" + i)
+			.attr("id","ans_" + i + "2")
+			.attr("question_id",data.questions[i].id)
+			.appendTo(qAnsP);
+		var ansLbl2 = $("<label>");
+		ansLbl2
+			.attr("for","ans_" + i + "2")
+			.text("No")
+			.appendTo(qAnsP);
+	}
+	$("#questionSet_" + q_index).accordion();
+			
+	var nextBtn = $("<button>");
+	nextBtn
+		.attr("question_id", data.next)
+		.addClass("nextBtn")
+		.text("Next")
+		.appendTo(subsection)
+		.button();
+}
 
 </script>
 </head>
 <body>
-<div class="subQuestionsBody">
-<span id="questionsTitle"></span>
-<p/>
-<div id="subQuestions">
-</div>
+<div id="subQuestionsBody">
 </div>
 </body>
 </html>
