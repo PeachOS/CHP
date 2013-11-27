@@ -3,6 +3,9 @@ package com.test;
 import com.test.DataBaseFunctions;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -16,6 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -25,7 +31,8 @@ import com.liferay.util.bridges.mvc.MVCPortlet;
  * Portlet implementation class NewPortlet2
  */
 public class NewPortlet2 extends MVCPortlet {
-	
+
+	private static DateFormat dateFormat = new SimpleDateFormat("[HH:mm:ss]");
 	private static Logger logger = Logger.getLogger("InfoLogging");
 	
 	private static JSONObject requestToJSONObject(ActionRequest request) {
@@ -65,7 +72,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getDrugCategories")
 	public void getDrugCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
 		
@@ -93,7 +101,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getDrugs")
 	public void getDrugs(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
 		
@@ -129,6 +138,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getOrderSummary")
 	public void getOrderSummary(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		
 		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
@@ -218,6 +229,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "updateStock")
 	public void updateStock(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
@@ -243,6 +256,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "updateOrder")
 	public void updateOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 
 
 		JSONObject parameters = requestToJSONObject(request);
@@ -276,6 +291,8 @@ public class NewPortlet2 extends MVCPortlet {
 	public void addNewDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);		
 		boolean result = DataBaseFunctions.addDrug(DataBaseFunctions.getWebConnection(),parameters);
 		
@@ -307,6 +324,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "updateDrug")
 	public void updateDrug(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.updateDrug(DataBaseFunctions.getWebConnection(),parameters);
@@ -331,6 +350,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "sendOrder")
 	public void sendOrder(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
 		boolean result = DataBaseFunctions.addOrder2(DataBaseFunctions.getWebConnection(),parameters);
@@ -388,6 +409,8 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getSubCategories")
 	public void getSubCategories(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		
 		String catId = request.getParameter("category_id");
 		
@@ -504,7 +527,9 @@ public class NewPortlet2 extends MVCPortlet {
 	@ProcessAction(name = "getSubQuestions")
 	public void getSubQuestions(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
-		
+
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
 		System.out.println("getSubQuestions");
 		JSONObject responseJSON = new JSONObject();
 		JSONArray list = new JSONArray();
