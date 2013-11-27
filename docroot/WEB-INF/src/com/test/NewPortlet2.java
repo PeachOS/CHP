@@ -3,6 +3,7 @@ package com.test;
 import com.test.DataBaseFunctions;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -19,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -45,6 +47,18 @@ public class NewPortlet2 extends MVCPortlet {
 		}
 		
 		return result;
+	}
+	
+	private static void writeMessage(ActionResponse response, JSONObject jsonObject) throws IOException {
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("application/json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, jsonObject.toJSONString());	
+	}
+
+	private static void writeMessage(ActionResponse response, JSONArray jsonArray) throws IOException {
+		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
+		httpResponse.setContentType("application/json;charset=UTF-8");
+		ServletResponseUtil.write(httpResponse, jsonArray.toJSONString());	
 	}
 	
 	
@@ -75,10 +89,18 @@ public class NewPortlet2 extends MVCPortlet {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
-		JSONArray list = DataBaseFunctions.getCategories(DataBaseFunctions.getWebConnection());
-		
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getDrugCategories()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		JSONArray list = DataBaseFunctions.getCategories(con);
+		
 		ServletResponseUtil.write(httpResponse, list.toJSONString());
 		
 	}
@@ -104,7 +126,18 @@ public class NewPortlet2 extends MVCPortlet {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
-		JSONArray list = DataBaseFunctions.getDrugs(DataBaseFunctions.getWebConnection(),parameters);
+		Connection con = DataBaseFunctions.getWebConnection();
+		
+
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getDrugs()");
+			writeMessage(response,errorObject);
+			return;
+		}
+		
+		JSONArray list = DataBaseFunctions.getDrugs(con,parameters);
 		
 		if (parameters.get("index") != null) {
 			
@@ -112,10 +145,7 @@ public class NewPortlet2 extends MVCPortlet {
 				((JSONObject) (list.get(i))).put("index", parameters.get("index"));
 			}
 		}
-		
-		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		writeMessage(response,list);
 	
 		
 	}
@@ -142,11 +172,18 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println(dateFormat.format(date));
 		
 		JSONObject parameters = requestToJSONObject(request);
-		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
-		
-		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		Connection con = DataBaseFunctions.getWebConnection();
+
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getOrderSummary()");
+			writeMessage(response,errorObject);
+			return;
+		}
+		JSONArray list = DataBaseFunctions.getOrderSummary2(con,parameters);
+
+		writeMessage(response,list);
 		
 	}
 
@@ -162,12 +199,18 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
-		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
-		
-		
-		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		Connection con = DataBaseFunctions.getWebConnection();
+
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getSentOrderSummary()");
+			writeMessage(response,errorObject);
+			return;
+		}
+
+		JSONArray list = DataBaseFunctions.getOrderSummary2(con,parameters);
+		writeMessage(response,list);
 		
 	}
 	
@@ -183,11 +226,18 @@ public class NewPortlet2 extends MVCPortlet {
 
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("summarize", "false");
-		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getOrderItems()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		
-		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		JSONArray list = DataBaseFunctions.getOrderSummary2(con,parameters);
+
+		writeMessage(response,list);
 		
 	}
 
@@ -204,11 +254,17 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONObject parameters = requestToJSONObject(request);
 		parameters.put("order_status", "sent");
 		parameters.put("summarize", "false");
-		JSONArray list = DataBaseFunctions.getOrderSummary2(DataBaseFunctions.getWebConnection(),parameters);
-		
-		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
-		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, list.toJSONString());
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"getSentOrderItems()");
+			writeMessage(response,errorObject);
+			return;
+		}
+		JSONArray list = DataBaseFunctions.getOrderSummary2(con,parameters);
+
+		writeMessage(response,list);
 		
 	}
 	
@@ -233,10 +289,18 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
-		boolean result = DataBaseFunctions.updateInventory(DataBaseFunctions.getWebConnection(),parameters);
-
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"updateStock()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		boolean result = DataBaseFunctions.updateInventory(con,parameters);
+
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 		
@@ -261,11 +325,19 @@ public class NewPortlet2 extends MVCPortlet {
 
 
 		JSONObject parameters = requestToJSONObject(request);
-		boolean result = DataBaseFunctions.updateOrderStatus(DataBaseFunctions.getWebConnection(),parameters);
-		
-
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"updateOrder()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		boolean result = DataBaseFunctions.updateOrderStatus(con,parameters);
+		
+
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 	}
@@ -294,11 +366,19 @@ public class NewPortlet2 extends MVCPortlet {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);		
-		boolean result = DataBaseFunctions.addDrug(DataBaseFunctions.getWebConnection(),parameters);
-		
-
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"addNewDrug()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		boolean result = DataBaseFunctions.addDrug(con,parameters);
+		
+
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 	}
@@ -328,11 +408,19 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
-		boolean result = DataBaseFunctions.updateDrug(DataBaseFunctions.getWebConnection(),parameters);
-		
-
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"updateDrug()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		boolean result = DataBaseFunctions.updateDrug(con,parameters);
+		
+
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 	}
 	
@@ -354,10 +442,18 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println(dateFormat.format(date));
 
 		JSONObject parameters = requestToJSONObject(request);
-		boolean result = DataBaseFunctions.addOrder2(DataBaseFunctions.getWebConnection(),parameters);
-
+		Connection con = DataBaseFunctions.getWebConnection();
+		if (con==null) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", "getWebConnection returned null when called in "+"sendOrder()");
+			writeMessage(response,errorObject);
+			return;
+		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
+		boolean result = DataBaseFunctions.addOrder2(con,parameters);
+
 		ServletResponseUtil.write(httpResponse, result?"1":"0");
 		
 	}
