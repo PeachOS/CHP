@@ -51,7 +51,7 @@ function displayQuestions(data) {
 	var titleSpan = $("<span>");
 	titleSpan
 		.html(data.title)
-		.addClass("questionsTitle")
+		.addClass("title")
 		.appendTo(mainDiv);
 	
 	var treatmentText = data.treatment;
@@ -64,11 +64,15 @@ function displayQuestions(data) {
 		return;
 	}
 	
+	var accordionWrap = $("<div>");
+	accordionWrap
+		.addClass("accordionUI")
+		.appendTo(mainDiv);
+	
 	var subsection = $("<div>");
 	subsection
-		.addClass("questionSet")
 		.attr("id","questionSet_" + q_index)
-		.appendTo(mainDiv);
+		.appendTo(accordionWrap);
 	
 	for (var i in data.questions) {
 		
@@ -130,7 +134,8 @@ function displayQuestions(data) {
 </script>
 </head>
 <body>
-<div id="subQuestionsBody">
+<div class="trainingBody">
+<div class="contentBody" id="subQuestionsBody"></div>
 </div>
 </body>
 </html>
