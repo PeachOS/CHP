@@ -233,6 +233,7 @@ p {padding: 5px 0;}
 
 /* OJT stuff */
 
+
 .buttonLink {
 	font-size: 20px;
 }
@@ -243,15 +244,18 @@ p {padding: 5px 0;}
 	box-shadow: 5px 5px #DEDEDE;
 }
 
+.title {
+	text-shadow: 1px 1px #facf95;
+	font-size: 24px;
+	padding-bottom: 20px;
+}
+
 .CHPTitle {
-	color: #eb8f00;
 	font-size: 60px;
-	text-shadow: 1px 1px #DEDEDE;
+	padding-top: 50px;
 }
 
 .subTitle {
-	color: #eb8f00;
-	text-shadow: 1px 1px #DEDEDE;
 	font-size: 30px;
 }
 
@@ -262,16 +266,24 @@ p {padding: 5px 0;}
 	margin: 0;
 	border-radius: 4px;
 	height: 1000px;
+	color: #eb8f00;
+	font-family: Verdana;
 }
 
-.subCategoriesBody, #materialsBody, #subQuestionsBody, #diagnoseBody {
-	padding: 50px 50px 50px 50px;
-	background-color: #FFF;
-	border: 1px solid #DEDEDE;
-	border-color: #C0C2C5;
-	margin: 0;
-	border-radius: 4px;
-	height: 1000px;
+
+.accordionUI {
+	padding-top: 20px;
+}
+
+.contentBody {
+	padding-left: 100px;
+	padding-top: 70px;
+	width: 700px;
+}
+
+#materialBody {
+	font-size: 16px;
+	text-align: justify;
 }
 
 #categories {
@@ -279,12 +291,6 @@ p {padding: 5px 0;}
 	float: left;
 	padding-left: 5%;
 	padding-top: 75px;
-}
-
-#categoriesTitle, .questionsTitle, #diagnoseTitle {
-	color: #eb8f00;
-	text-shadow: 1px 1px #DEDEDE;
-	font-size: 30px;
 }
 
 #questions {
@@ -299,13 +305,29 @@ p {padding: 5px 0;}
 	margin-right: 10px;
 }
 
-.categoryForm. .questionForm {
-	margin-bottom: 20px;
+.categoryForm {
+	padding-top: 20px;
 	width: 150px;
 }
 
+.questionForm {
+	padding-top: 20px;
+}
+
 .questionsSpan {
-	color: #eb8f00;
-	font-size: 20px;
-	text-shadow: 1px 1px #DEDEDE;
+	font-size: 16px;
+}
+
+.nextBtn {
+	margin-top: 10px;
+	margin-bottom: 30px;
+}
+
+.treatmentText {
+	font-size: 16px;
+	padding-top: 20px;
+}
+
+.matTitle {
+	width: 100%;
 }

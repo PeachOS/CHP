@@ -12,6 +12,14 @@ ActionRequest.ACTION_NAME, "search");*/
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:actionURL>
+<portlet:actionURL name="getSubCategories" var="getSubCategories"
+	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+	<portlet:param name="ajaxAction" value="getData"></portlet:param>
+</portlet:actionURL>
+<portlet:actionURL name="getMaterialTitles" var="getMaterialTitles"
+	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+	<portlet:param name="ajaxAction" value="getData"></portlet:param>
+</portlet:actionURL>
 <portlet:actionURL name="getTopQuestions" var="getTopQuestions"
 	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
@@ -24,50 +32,84 @@ ActionRequest.ACTION_NAME, "search");*/
 	<portlet:param name="jspPage" value="/html/newportlet2/subQuestions.jsp"/>
 	<portlet:param name="actionName" value="subQuestions"/>
 </portlet:actionURL>
+<portlet:actionURL var="materialURL">
+	<portlet:param name="jspPage" value="/html/newportlet2/trainingItem.jsp"/>
+	<portlet:param name="actionName" value="materials"/>
+</portlet:actionURL>
+
 
 <html>
 <head>
 <script type="text/javascript">
+
+
 $(document).ready(function() {
 	
 	// fill categories pane
 	
 	var request = jQuery.getJSON('<%=getTopCategories%>');
 	request.done(function(data) {
-		var categoryDiv = document.getElementById("categories");
+		var categoryDiv = document.getElementById("categoriesAccordion");
 		for (var i in data) {
-			console.log(data[i].id);
-			var categorySpan = $("<span>");
-			categorySpan
-				.addClass("categorySpan")
-				.appendTo(categoryDiv);
-			var categoryForm = $("<form>");
-			categoryForm
-				.text(data[i].name)
-				.addClass("categoryForm")
-				.attr("method","POST")
-				.attr("action","<%=subCategoriesURL.toString()%>")
-				.button()
-				.appendTo(categorySpan);
-			var categoryButton = $("<input>");
-			categoryButton
-				.addClass("categoryButton")
-				.attr("type","image")
-				.attr("id","category_" + i)
-				.attr("src","<%= request.getContextPath()%>/css/images/glasses.jpg")
-				.attr("style","height:150px;width:150px;")
-				.attr("category_id", data[i].id)
-				.text(data[i].name)
-				.val(data[i].id)
-				.appendTo(categoryForm);
-			var catId = $("<input>");
-			catId
-				.attr("type","hidden")
-				.attr("name", "category_id")
-				.attr("value", data[i].id)
-				.appendTo(categoryForm);
-		};
-		$("#categories").buttonset();
+			var cat1 = $("<h3>");
+			cat1
+				.appendTo(categoryDiv)
+				.html(data[i].name)
+				.attr("cat_id",data[i].id)
+				.attr("id", "cat1_" + i)
+				.attr("i",i)
+				.addClass("catTitle");
+			var innerDiv = $("<div>");
+			innerDiv
+				.appendTo(categoryDiv)
+				.attr("id", "innerDiv1_" + i);
+		}
+		$("#categoriesAccordion").accordion({collapsible : true, heightStyle: "content"});
+		
+		var subRequest = $.getJSON('<%=getSubCategories%>', {"index" : 4});
+		subRequest.done(function(data) {
+			var innerDiv_super = document.getElementById("innerDiv1_" + data.index);
+			for (var j in data.objects) {
+				var cat2 = $("<h3>");
+				cat2
+					.appendTo(innerDiv_super)
+					.html(data.objects[j].name)
+					.attr("cat_id",data.objects[j].id)
+					.attr("id", "cat2_" + j)
+					.attr("j",j)
+					.addClass("subCatTitle");
+				var innerDiv2 = $("<div>");
+				innerDiv2
+					.appendTo(innerDiv_super)
+					.attr("id", "innerDiv2_" + data.index + "_" + j);
+			}			
+			$("#innerDiv1_" + data.index).accordion({collapsible : true, heightStyle: "content"});
+			//$("#innerDiv1_0").accordion({heightStyle: "content"});
+		});
+		
+		var materialsRequest = $.getJSON('<%=getMaterialTitles%>', {"index" : 4});
+		materialsRequest.done(function(data) {
+			var innerDiv_super2 = document.getElementById("innerDiv2_4_" + data.index);
+			for (var k in data.objects) {
+				var matForm = $("<form>");
+				matForm
+					.attr("method", "POST")
+					.attr("name", "matForm_" + k)
+					.attr("action", '<%=materialURL%>')
+					.appendTo(innerDiv_super2);
+				var mat = $("<button>");
+				mat
+					.text(data.objects[k].title)
+					.attr("mat_id",data.objects[k].id)
+					.attr("id", "mat_" + k)
+					.attr("k",k)
+					.attr("type","submit")
+					.addClass("matTitle")
+					.button()
+					.appendTo(matForm);
+				$("<p>").appendTo(innerDiv_super2);
+			}
+		});
 		
 		var request2 = jQuery.getJSON('<%=getTopQuestions%>');
 		request2.done(function(data) {
@@ -111,12 +153,22 @@ $(document).ready(function() {
 		});
 	});
 });
+/*
+$(document).on("click", ".matTitle", function() {
+	console.log("matTitle clicked");
+	var params = {"id": $(this).attr("mat_id")};
+	var request = $.ajax({
+		url: '<%=materialURL%>',
+		data: params
+	});
+});
+*/
 </script>
 </head>
 <body>
 <div class="trainingBody">
-<div class="CHPTitle" align="center">Community Health Portal</div>
-<div class="subTitle" align="center">Learning Materials</div>
+<div class="CHPTitle title" align="center">Community Health Portal</div>
+<div class="subTitle title" align="center">Learning Materials</div>
 <!--
 <div class="search" align="center">
 <form name="<portlet:namespace/>fm" method="POST" action="">
@@ -133,11 +185,14 @@ $(function() {
 </div>
 -->
 <div id="categories">
-<span id="categoriesTitle">Categories for training materials:</span>
+<span id="categoriesTitle" class="title">Categories for training materials:</span>
+<div class="accordionUI">
+<div id="categoriesAccordion"></div>
 <p/>
 </div>
+</div>
 <div id="questions">
-<span id="questionsTitle">What symptoms does the patient have?</span>
+<span id="questionsTitle" class="title">What symptoms does the patient have?</span>
 </div>
 </div>
 

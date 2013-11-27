@@ -391,6 +391,9 @@ public class NewPortlet2 extends MVCPortlet {
 		
 		String catId = request.getParameter("category_id");
 		
+		// IMPORTANT do not delete
+		String index = request.getParameter("index");
+		
 		JSONArray list = new JSONArray();
         JSONObject cat1 = new JSONObject();
         JSONObject cat2 = new JSONObject();
@@ -413,9 +416,13 @@ public class NewPortlet2 extends MVCPortlet {
         list.add(cat4);
         list.add(cat5);
 		
+        JSONObject responseJSON = new JSONObject();
+        responseJSON.put("index", index);
+        responseJSON.put("objects", list);
+        
         HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
         httpResponse.setContentType("application/json;charset=UTF-8");
-        ServletResponseUtil.write(httpResponse, list.toJSONString());
+        ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
 		
 	}
 	
@@ -424,6 +431,8 @@ public class NewPortlet2 extends MVCPortlet {
 	public void getMaterialTitles(ActionRequest request, ActionResponse response)
 			throws PortletException, IOException {
 		
+		// IMPORTANT do not delete
+		String index = request.getParameter("index");
 		
 		JSONArray list = new JSONArray();
 		JSONObject mat1 = new JSONObject();
@@ -439,9 +448,13 @@ public class NewPortlet2 extends MVCPortlet {
 		list.add(mat2);
 		list.add(mat3);
 		
+		JSONObject responseJSON = new JSONObject();
+        responseJSON.put("index", index);
+        responseJSON.put("objects", list);
+		
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
         httpResponse.setContentType("application/json;charset=UTF-8");
-        ServletResponseUtil.write(httpResponse, list.toJSONString());
+        ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -577,8 +590,6 @@ public class NewPortlet2 extends MVCPortlet {
             ActionRequest actionRequest, ActionResponse actionResponse)
         throws IOException, PortletException {
 		
-		System.out.println("processAction");
-		
         PortletPreferences prefs = actionRequest.getPreferences();
         String actionName = actionRequest.getParameter("actionName");
         boolean switchJSP = false;
@@ -594,9 +605,10 @@ public class NewPortlet2 extends MVCPortlet {
                 }
         	}
         	else if (actionName.equals("materials")) {
-        		String catId2 = actionRequest.getParameter("category_id");
+        		System.out.println("materials");
+        		String catId2 = actionRequest.getParameter("id");
                 if (catId2 != null) {
-                    actionRequest.setAttribute("category_id", catId2);
+                    actionRequest.setAttribute("mat_id", catId2);
                 }
         	}
         	else if (actionName.equals("goToMaterial")) {
@@ -627,6 +639,7 @@ public class NewPortlet2 extends MVCPortlet {
         
         String jspPage = actionRequest.getParameter("jspPage");
         if (jspPage != null) {
+        	System.out.println(jspPage);
         	actionResponse.setRenderParameter("jspPage", jspPage);
         }
         if (switchJSP) {
