@@ -1,31 +1,25 @@
 package com.test;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.lang.annotation.Documented;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayDeque;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.postgresql.PGStatement;
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -59,20 +53,21 @@ public class DataBaseFunctions {
 
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 
-
 	/**
 	 * 
 	 * @return A connection to the database, currently having all rights.
+	 * @throws SQLException
 	 */
-	public static Connection getWebConnection() {
+	public static Connection getWebConnection() throws SQLException {
 		if (!loaded) {
-				URL = "localhost";
-				PORT = "5433";
-				DATABASE = "chpv1_small";
-				USER = "postgres";
-				PASSWORD = "postgres";
+			URL = "localhost";
+			PORT = "5433";
+			DATABASE = "chpv1_small";
+			USER = "postgres";
+			PASSWORD = "postgres";
 			loaded = true;
 		}
+		Connection con;
 		try {
 			if (pgSimpleDataSourceWeb == null) {
 				pgSimpleDataSourceWeb = new PGSimpleDataSource();
@@ -83,8 +78,13 @@ public class DataBaseFunctions {
 				pgSimpleDataSourceWeb.setPassword(PASSWORD);
 
 			}
-			Connection con = pgSimpleDataSourceWeb.getConnection();
+			con = pgSimpleDataSourceWeb.getConnection();
 			con.setAutoCommit(true);
+		} catch (SQLException e) {
+			throw new SQLException(
+					"Could not properly build a connection to Database");
+		}
+		try {
 			getOrderNonSummarizedStatement = con
 					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
 			getOrderSummarizedStatement = con
@@ -105,9 +105,8 @@ public class DataBaseFunctions {
 					.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
 			return con;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException("Could not prepare the statements");
 		}
-		return null;
 	}
 
 	/**
@@ -117,16 +116,20 @@ public class DataBaseFunctions {
 	 * @return JSONArray containing Categories, stored as JSONObjects
 	 * @throws SQLException
 	 */
-	public static JSONArray getCategories(Connection con) {
+	public static JSONArray getCategories(Connection con) throws SQLException {
 		ResultSet resultSet;
 		JSONArray result = null;
 		try {
 			System.out.println(getCategoryNamesStatement.toString());
 			resultSet = getCategoryNamesStatement.executeQuery();
-			result = ResultSetHelper.resultSetToJSONArray(resultSet);
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: getCategories()\n" + "Statement: %s\n"
+							+ "Details: %s",
+					getCategoryNamesStatement.toString(), e.getMessage()));
 		}
+		result = ResultSetHelper.resultSetToJSONArray(resultSet);
 		return result;
 	}
 
@@ -141,26 +144,21 @@ public class DataBaseFunctions {
 	 * <br>
 	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
 	 *            unit_number (int)) will have to be added
-	 * @return true if operation succeeded, false otherwise
 	 * @throws SQLException
 	 */
-	public static boolean addOrder2(Connection con, JSONObject parameters) {
-		if (parameters == null)
-			return false;
+	public static void addOrder2(Connection con, JSONObject parameters)
+			throws SQLException {
 
 		@SuppressWarnings("rawtypes")
 		Set keySet = parameters.keySet();
-		int keySize = keySet.size();
 
-		if (keySize < 3) {
-			System.err.println("Not enough Liis, try again!");
-			return false;
-		}
 		String facility_idS = (String) parameters.get("facility_id");
 		String order_statusS = (String) parameters.get("status");
 
 		if (facility_idS == null || order_statusS == null)
-			return false;
+			throw new IllegalArgumentException(
+					"facility_id and order_status were not provided as parameter.\n"
+							+ "Function: addOrder2()");
 
 		Integer facility_id = Integer.valueOf(facility_idS);
 		Integer status = Integer.valueOf(order_statusS);
@@ -191,13 +189,21 @@ public class DataBaseFunctions {
 			Array a = con.createArrayOf("order", orderBlas.toArray());
 			addOrderStatement.setArray(3, a);
 			System.out.println(addOrderStatement.toString());
-			addOrderStatement.executeUpdate();
-			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: addOrder2()\n" + "Details: %s",
+					e.getMessage()));
 		}
-
-		return false;
+		try {
+			addOrderStatement.executeUpdate();
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: addOrder2()\n" + "Statement: %s\n"
+							+ "Details: %s", addOrderStatement.toString(),
+					e.getMessage()));
+		}
 	}
 
 	/**
@@ -212,9 +218,11 @@ public class DataBaseFunctions {
 	 *            drug_id : (int),<br>
 	 *            category_id : (int)
 	 * @return JSONArray containing Drugs, stored as JSONObjects
+	 * @throws SQLException
 	 * 
 	 */
-	public static JSONArray getDrugs(Connection con, JSONObject parameters) {
+	public static JSONArray getDrugs(Connection con, JSONObject parameters)
+			throws SQLException {
 
 		String drug_idS = (String) parameters.get("drug_id");
 		String category_idS = (String) parameters.get("category_id");
@@ -222,7 +230,9 @@ public class DataBaseFunctions {
 		String facility_idS = (String) parameters.get("facility_id");
 
 		if (facility_idS == null)
-			return null;
+			throw new IllegalArgumentException(
+					"facility_id was not provided as parameter.\n"
+							+ "Function: getDrugs()");
 
 		try {
 			Integer facility_id = Integer.valueOf(facility_idS);
@@ -231,28 +241,38 @@ public class DataBaseFunctions {
 
 			getDrugsStatement.setInt(p++, facility_id);
 
-			if (drug_idS != null && drug_idS.matches("[0-9]*")) {
+			if (drug_idS != null) {
 				Integer drug_id = Integer.valueOf(drug_idS);
 				getDrugsStatement.setInt(p++, drug_id);
 			} else
 				getDrugsStatement.setNull(p++, Types.INTEGER);
 
-			if (category_idS != null && category_idS.matches("[0-9]*")) {
+			if (category_idS != null) {
 				Integer category_id = Integer.valueOf(category_idS);
 				getDrugsStatement.setInt(p++, category_id);
 			} else
 				getDrugsStatement.setNull(p++, Types.INTEGER);
-
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: getDrugs()\n" + "Statement: %s\n"
+							+ "Details: %s", getDrugsStatement.toString(),
+					e.getMessage()));
+		}
+		ResultSet rs;
+		try {
 			System.out.println(getDrugsStatement.toString());
-			ResultSet rs = getDrugsStatement.executeQuery();
-
-			return ResultSetHelper.resultSetToJSONArray(rs);
+			rs = getDrugsStatement.executeQuery();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: getDrugs()\n" + "Statement: %s\n"
+							+ "Details: %s", getDrugsStatement.toString(),
+					e.getMessage()));
 		}
 
-		return new JSONArray();
+		return ResultSetHelper.resultSetToJSONArray(rs);
 
 	}
 
@@ -270,11 +290,10 @@ public class DataBaseFunctions {
 	 *            facility_id (int),<br>
 	 *            facility_name (String)
 	 * @return
+	 * @throws SQLException
 	 */
 	public static JSONArray getOrderSummary2(Connection con,
-			JSONObject parameters) {
-		if (parameters == null)
-			return null;
+			JSONObject parameters) throws SQLException {
 
 		String order_id = (String) parameters.get("order_id");
 
@@ -328,17 +347,25 @@ public class DataBaseFunctions {
 
 			System.out.println(pstmt.toString());
 
-			ResultSet rs = pstmt.executeQuery();
-
-			return ResultSetHelper.resultSetToJSONArray(rs);
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: getOrderSummary2()\n" + "Details: %s",
+					e.getMessage()));
+		}
+		ResultSet rs;
+		try {
+			rs = pstmt.executeQuery();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: getOrderSummary2()\n"
+							+ "Statement: %s\n" + "Details: %s",
+					pstmt.toString(), e.getMessage()));
 		}
+		return ResultSetHelper.resultSetToJSONArray(rs);
 
-		System.out
-				.println("orderSummary finishes now. Whatever happens next is not its fault.");
-		return resultArray;
 	}
 
 	/**
@@ -352,27 +379,36 @@ public class DataBaseFunctions {
 	 * @return true if operation succeeded, false otherwise
 	 * @throws SQLException
 	 */
-	public static boolean updateOrderStatus(Connection con,
-			JSONObject parameters) {
-		if (parameters == null)
-			return false;
+	public static void updateOrderStatus(Connection con, JSONObject parameters)
+			throws SQLException {
 		Integer order_id = Integer.valueOf((String) parameters.get("order_id"));
 		Integer status = Integer.valueOf((String) parameters.get("status"));
 
 		if (order_id == null || status == null)
-			return false;
+			throw new IllegalArgumentException(
+					"order_id and status were not provided as parameters.\n"
+							+ "Function: updateOrderStatus");
 
 		try {
 			updateOrderStatusStatement.setInt(1, status);
 			updateOrderStatusStatement.setInt(2, order_id);
 
-			updateOrderStatusStatement.executeUpdate();
-			return true;
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(
+					String.format(
+							"Adding parameters to the statement failed\n"
+									+ "Function: updateOrderStatus()\n"
+									+ "Details: %s", e.getMessage()));
 		}
-
-		return false;
+		try {
+			updateOrderStatusStatement.executeUpdate();
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: updateOrderStatus()\n"
+							+ "Statement: %s\n" + "Details: %s",
+					updateOrderStatusStatement.toString(), e.getMessage()));
+		}
 
 	}
 
@@ -387,40 +423,51 @@ public class DataBaseFunctions {
 	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
 	 *            difference (int)) will have to be added
 	 * @return true if operation succeeded, false otherwise
+	 * @throws SQLException
 	 */
-	public static boolean updateInventory(Connection con, JSONObject parameters) {
-		if (parameters == null)
-			return false;
+	public static void updateInventory(Connection con, JSONObject parameters)
+			throws SQLException {
 
 		Integer facility_id = Integer.valueOf((String) parameters
 				.get("facility_id"));
 
 		if (facility_id == null)
-			return false;
+			throw new IllegalArgumentException(
+					"facility_id was not provided as parameter.\n"
+							+ "Function: updateInventory()");
 
 		@SuppressWarnings("unchecked")
 		Set<Map.Entry<Object, Object>> a = parameters.entrySet();
 
-		try {
-			for (Iterator<Entry<Object, Object>> iterator = a.iterator(); iterator
-					.hasNext();) {
-				Entry<Object, Object> entry = iterator.next();
-				String key = (String) entry.getKey();
-				if (!key.isEmpty() && key.matches("[0-9]*")) {
+		for (Iterator<Entry<Object, Object>> iterator = a.iterator(); iterator
+				.hasNext();) {
+			Entry<Object, Object> entry = iterator.next();
+			String key = (String) entry.getKey();
+			if (!key.isEmpty() && key.matches("[0-9]*")) {
+				try {
 					updateInventoryStatenment.setInt(1, facility_id);
 					updateInventoryStatenment.setInt(2, Integer.valueOf(key));
 					updateInventoryStatenment.setInt(3,
 							Integer.valueOf((String) entry.getValue()));
+				} catch (SQLException e) {
+					throw new SQLException(String.format(
+							"Adding parameters to the statement failed\n"
+									+ "Function: updateInventory()\n"
+									+ "Details: %s", e.getMessage()));
+				}
+				try {
 					updateInventoryStatenment.executeQuery();
+				} catch (SQLException e) {
+					throw new SQLException(String.format(
+							"Execution of Statement failed.\n"
+									+ "Function: updateInventory()\n"
+									+ "Statement: %s\n" + "Details: %s",
+							updateInventoryStatenment.toString(),
+							e.getMessage()));
 				}
 			}
-			return true;
-		} catch (SQLException e) {
-			e.getNextException().printStackTrace();
-			e.printStackTrace();
-		}
 
-		return false;
+		}
 
 	}
 
@@ -442,7 +489,8 @@ public class DataBaseFunctions {
 	 * @return true if operation succeeded, false otherwise
 	 * @throws SQLException
 	 */
-	public static boolean addDrug(Connection con, JSONObject parameters) {
+	public static void addDrug(Connection con, JSONObject parameters)
+			throws SQLException {
 		String msdcodeS = (String) parameters.get("msdcode");
 		String category_idS = (String) parameters.get("category_id");
 		String med_name = (String) parameters.get("med_name");
@@ -453,7 +501,9 @@ public class DataBaseFunctions {
 
 		if (msdcodeS == null || category_idS == null || med_name == null
 				|| unit_priceS == null)
-			return false;
+			throw new IllegalArgumentException(
+					"msdcode, category_id, med_name and unit_price are mandatory parameters.\n"
+							+ "Function: addDrug()");
 
 		Double unit_price = Double.valueOf(unit_priceS);
 
@@ -475,17 +525,24 @@ public class DataBaseFunctions {
 			}
 
 			addDrugStatement.setDouble(p++, unit_price);
-
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: addDrug()\n" + "Details: %s",
+					e.getMessage()));
+		}
+		try {
 			System.out.println(addDrugStatement.toString());
 
-			int result = addDrugStatement.executeUpdate();
-			return result > 0;
+			addDrugStatement.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: addDrug()\n" + "Statement: %s\n"
+							+ "Details: %s", addDrugStatement.toString(),
+					e.getMessage()));
 		}
-
-		return false;
 	}
 
 	/**
@@ -507,12 +564,15 @@ public class DataBaseFunctions {
 	 * @return true if operation succeeded, false otherwise
 	 * @throws SQLException
 	 */
-	public static boolean updateDrug(Connection con, JSONObject parameters) {
+	public static void updateDrug(Connection con, JSONObject parameters)
+			throws SQLException {
 
 		String idS = (String) parameters.get("id");
 
 		if (idS == null)
-			return false;
+			throw new IllegalArgumentException(
+					"id was not provided as parameter.\n"
+							+ "Function: updateDrug()");
 
 		int id = Integer.valueOf(idS);
 
@@ -563,16 +623,24 @@ public class DataBaseFunctions {
 
 			updateDrugStatement.setInt(p++, id);
 
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: updateDrug()\n" + "Details: %s",
+					e.getMessage()));
+		}
+		try {
 			System.out.println(updateDrugStatement.toString());
 
-			int result = updateDrugStatement.executeUpdate();
-
-			return result > 0;
+			updateDrugStatement.executeUpdate();
 
 		} catch (SQLException e) {
-			e.printStackTrace();
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: updateDrug()\n" + "Statement: %s\n"
+							+ "Details: %s", updateDrugStatement.toString(),
+					e.getMessage()));
 		}
-		return false;
 	}
 
 	/**
@@ -587,9 +655,10 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
+	 * @throws SQLException
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
-	private static void testGetDrugs(Connection con) {
+	private static void testGetDrugs(Connection con) throws SQLException {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
 		input.put("drug_id", "4");
@@ -604,9 +673,10 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
+	 * @throws SQLException
 	 */
 	@SuppressWarnings({ "unchecked" })
-	private static void testGetOrderSummary(Connection con) {
+	private static void testGetOrderSummary(Connection con) throws SQLException {
 		JSONObject input = new JSONObject();
 		input.put("facility_id", "1");
 		input.put("summarize", "true");
@@ -630,9 +700,10 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
+	 * @throws SQLException 
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
-	private static void testAddDrug(Connection con) {
+	private static void testAddDrug(Connection con) throws SQLException {
 		JSONObject input = new JSONObject();
 		input.put("med_name", "Antimonogamysol");
 		input.put("msdcode", "12345");
@@ -642,8 +713,7 @@ public class DataBaseFunctions {
 		input.put("unit_details", "3% Weed / NLU");
 		input.put("unit_price", "1.2");
 
-		boolean result = addDrug(con, input);
-		System.out.println(Helper.niceJsonPrint(result, ""));
+		addDrug(con, input);
 
 	}
 
@@ -653,9 +723,10 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
+	 * @throws SQLException 
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
-	private static void testUpdateDrug(Connection con) {
+	private static void testUpdateDrug(Connection con) throws SQLException {
 		JSONObject input = new JSONObject();
 		input.put("category_id", "1");
 		input.put("common_name", "Aspirin 3");
@@ -666,8 +737,7 @@ public class DataBaseFunctions {
 		input.put("unit_details", "Tablet");
 		input.put("unit_price", 3);
 
-		boolean result = updateDrug(con, input);
-		System.out.println(result);
+		updateDrug(con, input);
 
 	}
 
@@ -677,9 +747,10 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
+	 * @throws SQLException
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
-	private static void testAddOrder(Connection con) {
+	private static void testAddOrder(Connection con) throws SQLException {
 		Random rand = new Random();
 		for (int a = 0; a < 40; a++) {
 			JSONObject input = new JSONObject();
@@ -689,7 +760,7 @@ public class DataBaseFunctions {
 				input.put(String.valueOf(1 + rand.nextInt(50)),
 						String.valueOf(1 + rand.nextInt(20)));
 
-			boolean result = addOrder2(con, input);
+			addOrder2(con, input);
 		}
 		for (int a = 0; a < 15; a++) {
 			JSONObject input = new JSONObject();
@@ -699,7 +770,7 @@ public class DataBaseFunctions {
 				input.put(String.valueOf(1 + rand.nextInt(50)),
 						String.valueOf(1 + rand.nextInt(20)));
 
-			boolean result = addOrder2(con, input);
+			addOrder2(con, input);
 		}
 		for (int a = 0; a < 10; a++) {
 			JSONObject input = new JSONObject();
@@ -709,7 +780,7 @@ public class DataBaseFunctions {
 				input.put(String.valueOf(1 + rand.nextInt(50)),
 						String.valueOf(1 + rand.nextInt(20)));
 
-			boolean result = addOrder2(con, input);
+			addOrder2(con, input);
 		}
 		for (int a = 0; a < 8; a++) {
 			JSONObject input = new JSONObject();
@@ -719,11 +790,11 @@ public class DataBaseFunctions {
 				input.put(String.valueOf(1 + rand.nextInt(50)),
 						String.valueOf(1 + rand.nextInt(20)));
 
-			boolean result = addOrder2(con, input);
+			addOrder2(con, input);
 		}
 	}
 
-	private static void testGetCategories(Connection con) {
+	private static void testGetCategories(Connection con) throws SQLException {
 		JSONArray arr = getCategories(con);
 		System.out.println(Helper.niceJsonPrint(arr, ""));
 	}
@@ -736,18 +807,18 @@ public class DataBaseFunctions {
 
 	@SuppressWarnings({})
 	public static void main(String[] args) {
-		Connection con = getWebConnection();
-		// testAddOrder(con);
-		// testUpdateDrug(con);
-		 testGetCategories(con);
-		// testGetOrderSummary(con);
-		// tryNewStuff();
-		// testGetDrugs(con);
-		// testAddDrug(con);
 		try {
+			Connection con = getWebConnection();
+			// testAddOrder(con);
+			// testUpdateDrug(con);
+			testGetCategories(con);
+			// testGetOrderSummary(con);
+			// tryNewStuff();
+			// testGetDrugs(con);
+			// testAddDrug(con);
 			con.close();
 		} catch (SQLException e) {
-			e.printStackTrace();
+			System.err.println(e.getMessage());
 		}
 	}
 
