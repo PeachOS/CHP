@@ -64,7 +64,7 @@ $(document).ready(function() {
 				.appendTo(categoryDiv)
 				.attr("id", "innerDiv1_" + i);
 		}
-		$("#categoriesAccordion").accordion({collapsible : true, heightStyle: "content"});
+		$("#categoriesAccordion").accordion({collapsible : true, heightStyle: "content", active: false});
 		
 		var subRequest = $.getJSON('<%=getSubCategories%>', {"index" : 4});
 		subRequest.done(function(data) {
@@ -82,34 +82,38 @@ $(document).ready(function() {
 				innerDiv2
 					.appendTo(innerDiv_super)
 					.attr("id", "innerDiv2_" + data.index + "_" + j);
-			}			
-			$("#innerDiv1_" + data.index).accordion({collapsible : true, heightStyle: "content"});
-			//$("#innerDiv1_0").accordion({heightStyle: "content"});
+			}
+			$("#innerDiv1_" + data.index).accordion({collapsible : true, heightStyle: "content", active: false});
+
+			var materialsRequest = $.getJSON('<%=getMaterialTitles%>', {"index" : 4});
+			materialsRequest.done(function(data) {
+				var innerDiv_super2 = document.getElementById("innerDiv2_4_" + data.index);
+				for (var k in data.objects) {
+					var matForm = $("<form>");
+					matForm
+						.attr("method", "POST")
+						.attr("name", "matForm_" + k)
+						.attr("action", '<%=materialURL%>')
+						.appendTo(innerDiv_super2);
+					var mat = $("<button>");
+					mat
+						.text(data.objects[k].title)
+						.attr("mat_id",data.objects[k].id)
+						.attr("id", "mat_" + k)
+						.attr("k",k)
+						.attr("type","submit")
+						.addClass("matTitle")
+						.button()
+						.appendTo(matForm);
+					$("<p>").appendTo(innerDiv_super2);
+				}
+			});
 		});
 		
-		var materialsRequest = $.getJSON('<%=getMaterialTitles%>', {"index" : 4});
-		materialsRequest.done(function(data) {
-			var innerDiv_super2 = document.getElementById("innerDiv2_4_" + data.index);
-			for (var k in data.objects) {
-				var matForm = $("<form>");
-				matForm
-					.attr("method", "POST")
-					.attr("name", "matForm_" + k)
-					.attr("action", '<%=materialURL%>')
-					.appendTo(innerDiv_super2);
-				var mat = $("<button>");
-				mat
-					.text(data.objects[k].title)
-					.attr("mat_id",data.objects[k].id)
-					.attr("id", "mat_" + k)
-					.attr("k",k)
-					.attr("type","submit")
-					.addClass("matTitle")
-					.button()
-					.appendTo(matForm);
-				$("<p>").appendTo(innerDiv_super2);
-			}
-		});
+		
+		
+		
+		
 		
 		var request2 = jQuery.getJSON('<%=getTopQuestions%>');
 		request2.done(function(data) {
