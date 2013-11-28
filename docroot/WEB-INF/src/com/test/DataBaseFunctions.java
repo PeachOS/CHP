@@ -3,7 +3,6 @@ package com.test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.annotation.Documented;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -67,7 +66,7 @@ public class DataBaseFunctions {
 			PASSWORD = "postgres";
 			loaded = true;
 		}
-		Connection con;
+		Connection con = null;
 		try {
 			if (pgSimpleDataSourceWeb == null) {
 				pgSimpleDataSourceWeb = new PGSimpleDataSource();
@@ -81,8 +80,13 @@ public class DataBaseFunctions {
 			con = pgSimpleDataSourceWeb.getConnection();
 			con.setAutoCommit(true);
 		} catch (SQLException e) {
-			throw new SQLException(
-					"Could not properly build a connection to Database");
+			throw new SQLException(String.format(
+					"Could not properly build a connection to Database.\n"
+							+ "Function: getWebConnection()\n"
+							+ "Details: %s\n"
+							+ "pgSimpleDataSourceWeb == null: %B\n"
+							+ "con == null: %B", e.getMessage(),
+					pgSimpleDataSourceWeb == null, con == null));
 		}
 		try {
 			getOrderNonSummarizedStatement = con
@@ -105,7 +109,10 @@ public class DataBaseFunctions {
 					.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
 			return con;
 		} catch (SQLException e) {
-			throw new SQLException("Could not prepare the statements");
+			throw new SQLException(String.format(
+					"Could not prepare the statements.\n"
+							+ "Function: getWebConnection()\n" + "Details: %s",
+					e.getMessage()));
 		}
 	}
 
@@ -700,7 +707,7 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testAddDrug(Connection con) throws SQLException {
@@ -723,7 +730,7 @@ public class DataBaseFunctions {
 	 * 
 	 * @param con
 	 *            Connection to be used
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	@SuppressWarnings({ "unused", "unchecked" })
 	private static void testUpdateDrug(Connection con) throws SQLException {
