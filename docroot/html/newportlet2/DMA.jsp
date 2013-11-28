@@ -320,7 +320,7 @@ $(document).on("click",".UpdateStock", function() {					// Clicking "Update stoc
 	updateInfo[$(this).attr("drugid")] = diff;
 	updateInfo["facility_id"] = "1";
 	
-	var sendUpdate = $.ajax({url: '<%=updateStock%>', data: updateInfo});
+	var sendUpdate = $.getJSON('<%=updateStock%>', updateInfo);
 	sendUpdate.done(function (msg){
 		if (msg.error != null) {
 			createDialog("notification","#error-message","ui-icon ui-icon-circle-check","An error occured while sending the update. Please try again", msg.details);
@@ -403,7 +403,7 @@ $(document).on("change",".reqInput",function(){					// Request Qty in New Order 
 		console.log(parameters);
 		
 		$("#statusgif").show();
-		var sendData = $.ajax({url: url, data: parameters});
+		var sendData = $.getJSON(url, parameters);
 		sendData.done(function (msg){
 			console.log(msg);
 			if (msg.error != null) {
@@ -1042,7 +1042,7 @@ function sendOrder(){														//Sends new order information to the DMA serv
 	for (var i in newOrder) {
 		parameters[newOrder[i].drugid] = newOrder[i].amount;				// For each id amount of the drug ordered
 	}
-	var sendNewOrder = $.ajax({url: '<%=sendOrder%>', data: parameters});
+	var sendNewOrder = $.getJSON('<%=sendOrder%>', parameters);
 	sendNewOrder.done(function (msg){
 		$("#statusgif").hide();
 		console.log("order sent, success");
@@ -1063,13 +1063,18 @@ function addToInventory(){													//Updates all inventory values which were
 		var parameters = {};
 		parameters["facility_id"] = "1";
 		parameters[rcvOrder.drugsInfo[i].drugid] = rcvOrder.drugsInfo[i].amount;
-		var request = $.ajax({url: '<%=updateStock%>', data: parameters});
+		var request = $.ajax('<%=updateStock%>', parameters);
 		request.done(function(msg) {
 			$("#statusgif").hide();
-			//sendReport();
-			changeOrderStatus("delivered");
-			createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your changes have been updated and a report has been sent");	
-			$("#Inventory").click();
+			if (msg.error != null) {
+				createDialog("notification","#error-message","ui-icon ui-icon-alert","Adding to inventory failed", msg.details);
+			}
+			else {
+				//sendReport();
+				changeOrderStatus("delivered");
+				createDialog("notification","#success-message","ui-icon ui-icon-circle-check","Your changes have been updated and a report has been sent");	
+				$("#Inventory").click();
+			}
 		});
 		request.fail(function(error) {
 			createDialog("notification","#error-message","ui-icon ui-icon-alert","Something went wrong and your changes were not updated. Please try again");
@@ -1120,12 +1125,15 @@ function sendReport(){														//Sends a report of the received drugs
 function changeOrderStatus(newStatus){										//Updates the status of an order
 	
 	var parameters = {"id": rcvOrder.orderid, "newStatus": newStatus};
-	var changeStatus = $.ajax('<%=updateOrder%>', parameters);
+	var changeStatus = $.getJSON('<%=updateOrder%>', parameters);
 	changeStatus.done(function(msg) {
-		console.log("changeStatus done");
+		if (msg.error != null) {
+			createDialog("notification","#error-message","ui-icon ui-icon-alert","Changing order status failed", msg.details);
+		}
 	});
 	changeStatus.fail(function (msg){
-		alert("Fail CoS:(\n" + msg);
+		console.log("order status change failed");
+		console.log(msg);
 	});
 } 
 
