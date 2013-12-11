@@ -279,6 +279,9 @@ p {padding: 5px 0;}
 .contentBody {
 	padding-left: 100px;
 	padding-top: 70px;
+}
+
+.contentSmall {
 	width: 700px;
 }
 
@@ -331,4 +334,36 @@ p {padding: 5px 0;}
 
 .matTitle {
 	width: 100%;
+}
+
+.generalSymptom {
+	padding-left: 50px;
+}
+
+#addGeneralSymptom {
+	margin-left: 50px;
+}
+
+.gsDescr {
+padding-left: 20px;
+}
+
+.box {
+	border: 2px solid;
+	margin-bottom: 10px;
+	padding-left: 20px;
+	padding-top: 10px;
+	border-radius: 3px;
+	padding-bottom: 10px;
+	width: 700px;
+}
+
+.surroundDiv {
+	padding-left: 40px;
+	margin-left: 40px;
+	border-left: solid 2px;
+}
+
+.addDiagnosis {
+	margin-bottom: 100px;
 }

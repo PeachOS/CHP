@@ -1,10 +1,9 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
 <%@ page import="org.json.simple.JSONObject" %>
 
-<portlet:actionURL name="getSubQuestions" var="getSubQuestions"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+<portlet:resourceURL id="getSubQuestions" var="getSubQuestions">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
+</portlet:resourceURL>
 <portlet:actionURL var="materialsURL">
 	<portlet:param name="jspPage" value="/html/newportlet2/materialsList.jsp"/>
 	<portlet:param name="actionName" value="materials"/>
@@ -135,7 +134,7 @@ function displayQuestions(data) {
 </head>
 <body>
 <div class="trainingBody">
-<div class="contentBody" id="subQuestionsBody"></div>
+<div class="contentBody contentSmall" id="subQuestionsBody"></div>
 </div>
 </body>
 </html>

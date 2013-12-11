@@ -1,7 +1,5 @@
 package com.test;
 
-import com.test.DataBaseFunctions;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -17,14 +15,13 @@ import javax.portlet.ActionResponse;
 import javax.portlet.PortletException;
 import javax.portlet.PortletPreferences;
 import javax.portlet.ProcessAction;
+import javax.portlet.ResourceRequest;
+import javax.portlet.ResourceResponse;
 import javax.servlet.http.HttpServletResponse;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.SystemException;
 import com.liferay.portal.kernel.servlet.ServletResponseUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.util.PortalUtil;
@@ -38,7 +35,7 @@ public class NewPortlet2 extends MVCPortlet {
 	private static DateFormat dateFormat = new SimpleDateFormat("[HH:mm:ss]");
 	private static Logger logger = Logger.getLogger("InfoLogging");
 	
-	private static JSONObject requestToJSONObject(ActionRequest request) {
+	private static JSONObject requestToJSONObject(ResourceRequest request) {
 		JSONObject result = new JSONObject();
 		Enumeration<String> parametersE = request.getParameterNames();
 		while (parametersE.hasMoreElements()) {
@@ -50,19 +47,19 @@ public class NewPortlet2 extends MVCPortlet {
 		return result;
 	}
 	
-	private static void writeMessage(ActionResponse response, JSONObject jsonObject) throws IOException {
+	private static void writeMessage(ResourceResponse response, JSONObject jsonObject) throws IOException {
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, jsonObject.toJSONString());	
 	}
 
-	private static void writeMessage(ActionResponse response, JSONArray jsonArray) throws IOException {
+	private static void writeMessage(ResourceResponse response, JSONArray jsonArray) throws IOException {
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
-		ServletResponseUtil.write(httpResponse, jsonArray.toJSONString());	
+		ServletResponseUtil.write(httpResponse, jsonArray.toJSONString());
 	}
 
-	private static void writeMessage(ActionResponse response, String string) throws IOException {
+	private static void writeMessage(ResourceResponse response, String string) throws IOException {
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/plain;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, string);	
@@ -70,11 +67,11 @@ public class NewPortlet2 extends MVCPortlet {
 	
 	
  
-	public void updateBook(ActionRequest actionRequest,
-			ActionResponse actionResponse)
+	public void updateBook(ResourceRequest ResourceRequest,
+			ResourceResponse ResourceResponse)
 			throws IOException, PortletException {
-			String bookTitle = ParamUtil.getString(actionRequest, "bookTitle");
-			String author = ParamUtil.getString(actionRequest, "author");
+			String bookTitle = ParamUtil.getString(ResourceRequest, "bookTitle");
+			String author = ParamUtil.getString(ResourceRequest, "author");
 			System.out.println("Your inputs ==> " + bookTitle + ", " + author);
 			}
 	
@@ -90,9 +87,11 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "getDrugCategories")
-	public void getDrugCategories(ActionRequest request, ActionResponse response)
+	
+	public void getDrugCategories(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
+		
+		System.out.println("getDrugCategories reached");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
@@ -101,15 +100,16 @@ public class NewPortlet2 extends MVCPortlet {
 		try {
 			Connection con = DataBaseFunctions.getWebConnection();
 			list = DataBaseFunctions.getCategories(con);
-		} catch (SQLException e) {
+		} catch (SQLException e) {	
 			JSONObject errorObject =  new JSONObject();
 			errorObject.put("error", "Database");
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
 		}
-		writeMessage(response,list);
 		
+		System.out.println("getDrugCategories response: " + list.toJSONString());
+		writeMessage(response,list);
 	}
 	
 	/**
@@ -126,9 +126,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getDrugs")
-	public void getDrugs(ActionRequest request, ActionResponse response)
+	
+	public void getDrugs(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -172,8 +171,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "getOrderSummary")
-	public void getOrderSummary(ActionRequest request, ActionResponse response)
+	
+	public void getOrderSummary(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -199,10 +198,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "sent" as order_status to achieve same functionality.
 	 */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	@ProcessAction(name = "getSentOrderSummary")
-	public void getSentOrderSummary(ActionRequest request, ActionResponse response)
+	
+	public void getSentOrderSummary(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 
 		JSONObject parameters = requestToJSONObject(request);
@@ -227,10 +224,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_id" and "summarize = false" as parameters to achieve same functionality.
 	 */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	@ProcessAction(name = "getOrderItems")
-	public void getOrderItems(ActionRequest request, ActionResponse response)
+	
+	public void getOrderItems(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 
 		JSONObject parameters = requestToJSONObject(request);
@@ -257,10 +252,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * 
 	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_status : sent", "order_id" and "summarize : false" as parameters to achieve same functionality.
 	 */
-	@SuppressWarnings("unchecked")
-	@Deprecated
-	@ProcessAction(name = "getSentOrderItems")
-	public void getSentOrderItems(ActionRequest request, ActionResponse response)
+	
+	public void getSentOrderItems(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 
 		JSONObject parameters = requestToJSONObject(request);
@@ -295,8 +288,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "updateStock")
-	public void updateStock(ActionRequest request, ActionResponse response)
+	
+	public void updateStock(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -329,8 +322,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "updateOrder")
-	public void updateOrder(ActionRequest request, ActionResponse response)
+	
+	public void updateOrder(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -369,8 +362,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "addNewDrug")
-	public void addNewDrug(ActionRequest request, ActionResponse response)
+	
+	public void addNewDrug(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 
 		Date date = new Date();
@@ -409,8 +402,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 * @throws PortletException
 	 * @throws IOException
 	 */
-	@ProcessAction(name = "updateDrug")
-	public void updateDrug(ActionRequest request, ActionResponse response)
+	
+	public void updateDrug(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -441,8 +434,8 @@ public class NewPortlet2 extends MVCPortlet {
 	 *            Additionally Key-Value-Pairs in the form of (drug_id (int) :
 	 *            unit_number (int)) will have to be added
 	 */
-	@ProcessAction(name = "sendOrder")
-	public void sendOrder(ActionRequest request, ActionResponse response)
+	
+	public void sendOrder(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -468,16 +461,15 @@ public class NewPortlet2 extends MVCPortlet {
 	
 	// On-the-job training functions
 	
-	public void search(ActionRequest actionRequest,
-			ActionResponse actionResponse)
+	public void search(ResourceRequest ResourceRequest,
+			ResourceResponse ResourceResponse)
 			throws IOException, PortletException {
 	
 		System.out.println("searching...");
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getTopCategories")
-	public void getTopCategories(ActionRequest request, ActionResponse response)
+	
+	public void getTopCategories(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		
 		JSONArray list = new JSONArray();
@@ -508,9 +500,8 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getSubCategories")
-	public void getSubCategories(ActionRequest request, ActionResponse response)
+	
+	public void getSubCategories(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
@@ -552,9 +543,8 @@ public class NewPortlet2 extends MVCPortlet {
 		
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getMaterialTitles")
-	public void getMaterialTitles(ActionRequest request, ActionResponse response)
+	
+	public void getMaterialTitles(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		
 		// IMPORTANT do not delete
@@ -583,9 +573,8 @@ public class NewPortlet2 extends MVCPortlet {
         ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getMaterialContent")
-	public void getMaterialContent(ActionRequest request, ActionResponse response)
+	
+	public void getMaterialContent(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		
 		JSONObject contentObj = new JSONObject();
@@ -614,9 +603,7 @@ public class NewPortlet2 extends MVCPortlet {
 	}
 	
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getTopQuestions")
-	public void getTopQuestions(ActionRequest request, ActionResponse response)
+	public void getTopQuestions(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		
 		
@@ -639,9 +626,8 @@ public class NewPortlet2 extends MVCPortlet {
         ServletResponseUtil.write(httpResponse, list.toJSONString());
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getSubQuestions")
-	public void getSubQuestions(ActionRequest request, ActionResponse response)
+	
+	public void getSubQuestions(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 
 		Date date = new Date();
@@ -697,9 +683,8 @@ public class NewPortlet2 extends MVCPortlet {
 	    ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
 	}
 	
-	@SuppressWarnings("unchecked")
-	@ProcessAction(name = "getTreatment")
-	public void getTreatment(ActionRequest request, ActionResponse response)
+	
+	public void getTreatment(ResourceRequest request, ResourceResponse response)
 			throws PortletException, IOException {
 		
 		JSONObject responseJSON = new JSONObject();
@@ -711,12 +696,23 @@ public class NewPortlet2 extends MVCPortlet {
 	    ServletResponseUtil.write(httpResponse, responseJSON.toJSONString());
 	
 	}
+	
+	
+	public void sendForm(ResourceRequest request, ResourceResponse response)
+			throws PortletException, IOException {
+		
+		String generalName = ParamUtil.getString(request, "general");
+		String generalSym = ParamUtil.getString(request, "generalSymptom_1");
+		System.out.println("sendForm...." + generalName + " " + generalSym);
+	}
 		
 	// Very necessary function, please don't delete anything in here
 	@Override
     public void processAction(
             ActionRequest actionRequest, ActionResponse actionResponse)
         throws IOException, PortletException {
+		
+		System.out.println("processAction reached");
 		
         PortletPreferences prefs = actionRequest.getPreferences();
         String actionName = actionRequest.getParameter("actionName");
@@ -776,6 +772,73 @@ public class NewPortlet2 extends MVCPortlet {
         
         super.processAction(actionRequest, actionResponse);
     }
+	
+	public void serveResource(ResourceRequest request, ResourceResponse response) throws PortletException, IOException {        
+		 String resourceID = request.getResourceID();
+		 if ("getDrugCategories".equals(resourceID)) {
+			 getDrugCategories(request, response);
+		 }
+		 
+		 if ("getDrugs".equals(resourceID)) {
+			 getDrugs(request, response);
+		 }
+		 
+		 if ("getOrderSummary".equals(resourceID)) {
+			 getOrderSummary(request, response);
+		 }
+		 
+		 if ("updateStock".equals(resourceID)) {
+			 updateStock(request, response);
+		 }
+		 
+		 if ("updateOrder".equals(resourceID)) {
+			 updateOrder(request, response);
+		 }
+		 
+		 if ("addNewDrug".equals(resourceID)) {
+			 addNewDrug(request, response);
+		 }
+		 
+		 if ("updateDrug".equals(resourceID)) {
+			 updateDrug(request, response);
+		 }
+		 
+		 if ("sendOrder".equals(resourceID)) {
+			 sendOrder(request, response);
+		 }
+		 
+		 if ("getTopCategories".equals(resourceID)) {
+			 getTopCategories(request, response);
+		 }
+		 
+		 if ("getSubCategories".equals(resourceID)) {
+			 getSubCategories(request, response);
+		 }
+		 
+		 if ("getMaterialTitles".equals(resourceID)) {
+			 getMaterialTitles(request, response);
+		 }
+		 
+		 if ("getMaterialContent".equals(resourceID)) {
+			 getMaterialContent(request, response);
+		 }
+		 
+		 if ("getTopQuestions".equals(resourceID)) {
+			 getTopQuestions(request, response);
+		 }
+		 
+		 if ("getSubQuestions".equals(resourceID)) {
+			 getSubQuestions(request, response);
+		 }
+		 
+		 if ("getTreatment".equals(resourceID)) {
+			 getTreatment(request, response);
+		 }
+		 
+		 if ("sendForm".equals(resourceID)) {
+			 sendForm(request, response);
+		 }
+	}
 
 }
 

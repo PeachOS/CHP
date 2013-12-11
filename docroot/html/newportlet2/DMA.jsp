@@ -1,49 +1,38 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
 
-<portlet:actionURL name="getDrugCategories" var="getDrugCategories"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+<portlet:resourceURL id="getDrugCategories" var="getDrugCategories">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getDrugs" var="getDrugs"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getDrugs" var="getDrugs">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getOrderSummary" var="getOrderSummary"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getOrderSummary" var="getOrderSummary">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getSentOrderSummary" var="getSentOrderSummary"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getSentOrderSummary" var="getSentOrderSummary">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getOrderItems" var="getOrderItems"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getOrderItems" var="getOrderItems">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getSentOrderItems" var="getSentOrderItems"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getSentOrderItems" var="getSentOrderItems">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="sendOrder" var="sendOrder"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="sendOrder" var="sendOrder">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="updateStock" var="updateStock"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="updateStock" var="updateStock">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="updateOrder" var="updateOrder"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="updateOrder" var="updateOrder">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="addNewDrug" var="addNewDrug"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="addNewDrug" var="addNewDrug">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="updateDrug" var="updateDrug"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="updateDrug" var="updateDrug">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
+</portlet:resourceURL>
 
 <!--  code from DMA, index.html -->
 <!DOCTYPE HTML>
@@ -527,6 +516,7 @@ function createInputField(labelText, id, type, cell) {			// Creates an input fie
 		var request = jQuery.getJSON(url);
 		request.done(function(data){
 			$("#statusgif").hide();
+			console.log(data);
 			if (data.error != null) {
 				createDialog("notification","#error-message","ui-icon ui-icon-alert","Fetching categories failed", data.details);
 			}
@@ -548,6 +538,9 @@ function createInputField(labelText, id, type, cell) {			// Creates an input fie
 			}
 		});
 		request.fail(function(jqXHR, textStatus) {
+			console.log("request failed hardcore");
+			console.log(jqXHR);
+			console.log(textStatus);
 	 		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
 			$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
 		});	
@@ -556,8 +549,32 @@ function createInputField(labelText, id, type, cell) {			// Creates an input fie
  function loadDrugCategories () {							//Retrieves from DMA server the category names and displays them in side bar
 	
 	$("#statusgif").show();	
-	var url = '<%=getDrugCategories%>';
-	var request = jQuery.getJSON(url);
+	var url = "<%=getDrugCategories%>";
+	console.log("url: " + url);
+	$.ajax({
+		url: url,
+		dataType: "json"
+	})
+	.success(function(data) {
+		$("#statusgif").hide();
+		console.log(data);
+		if (data.error != null) {
+			createDialog("notification","#error-message","ui-icon ui-icon-alert","Fetching categories failed", data.details);
+		}
+		else {
+			drawSideCol("#sidecol",data,"drugCategories");
+			$("#side_0").click();								// Select first retrieved category
+		}
+	})
+	.fail(function(jqXHR, textStatus, errorThrown) {
+		console.log(jqXHR);
+		console.log(textStatus);
+		console.log(errorThrown);
+ 		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
+		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
+	});
+	
+	/*var request = jQuery.getJSON(url);
 	request.done(function(data){
 		$("#statusgif").hide();
 		console.log(data);
@@ -569,10 +586,13 @@ function createInputField(labelText, id, type, cell) {			// Creates an input fie
 			$("#side_0").click();								// Select first retrieved category
 		}
 	});
-	request.fail(function(jqXHR, textStatus) {
+	request.fail(function(jqXHR, textStatus, errorThrown) {
+		console.log(jqXHR);
+		console.log(textStatus);
+		console.log(errorThrown);
  		createDialog("notification","#error-message","ui-icon ui-icon-alert","Connection to the DMA server is unavailable. Please try again later");
 		$("#statusgif").attr("src","/css/custom-theme/images/important.gif");
-	});
+	});*/
 }
 
 function showDrugs(category){ 								//Retrieves drug information from DB and displays it to the user
@@ -666,7 +686,7 @@ function loadOrders(status){								//Retrieves from DMA server the orders and d
 	request.fail(function(msg){
 		console.log("getOrderSummary request failed");
 		console.log(msg);
-	})
+	});
 }
 
 function showOrderItems(sideEl){							//Displays all of the items contained in the selected order
@@ -1332,51 +1352,43 @@ function isFloat(n) {
 }
 
 </script>
-     
 
+<script>        // DMA code from index.html
 
-
-
-
-
-
-
-        <script>        // DMA code from index.html
-
-        $(function() {
-                $("button").button();
-                $(".dialog-messages").hide();
-                $('#modules').buttonset();
-                $('#submodules').buttonset();
-                $("#Order")
-                        .button( {
-                                icons: {
-                                        primary: null,
-                                        secondary: "ui-icon-triangle-1-s"
-                                }
-                        });
-                $(".optBtn")
-                        .button( {
-                                label: "Incoming Package",
-                                icons: {
-                                        primary: "ui-icon-cart"
-                                }
-                        });
-                $("#clearBtn")
-                        .button( {
-                                label: "Clear",
-                                icons: {
-                                        primary: "ui-icon-trash"
-                                }
-                        });
-                $("#backBtn")
-                        .button( {
-                                label: "Back",
-                                icons: {
-                                        primary: "ui-icon-circle-arrow-w"
-                                }
-                        });                                
-        });        
+$(function() {
+        $("button").button();
+        $(".dialog-messages").hide();
+        $('#modules').buttonset();
+        $('#submodules').buttonset();
+        $("#Order")
+                .button( {
+                        icons: {
+                                primary: null,
+                                secondary: "ui-icon-triangle-1-s"
+                        }
+                });
+        $(".optBtn")
+                .button( {
+                        label: "Incoming Package",
+                        icons: {
+                                primary: "ui-icon-cart"
+                        }
+                });
+        $("#clearBtn")
+                .button( {
+                        label: "Clear",
+                        icons: {
+                                primary: "ui-icon-trash"
+                        }
+                });
+        $("#backBtn")
+                .button( {
+                        label: "Back",
+                        icons: {
+                                primary: "ui-icon-circle-arrow-w"
+                        }
+                });                                
+});        
 </script>
 </head>
 

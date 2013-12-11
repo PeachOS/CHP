@@ -1,9 +1,8 @@
 <%@ include file="/html/newportlet2/init.jsp" %>
 
-<portlet:actionURL name="getMaterialContent" var="getMaterialContent"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+<portlet:resourceURL id="getMaterialContent" var="getMaterialContent">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
+</portlet:resourceURL>
 
 <%
 String matId = (String) request.getAttribute("mat_id");
@@ -24,7 +23,7 @@ $(document).ready(function() {
 </head>
 <body>
 <div class="trainingBody">
-<div class="contentBody">
+<div class="contentBody contentSmall">
 <div id="materialTitle" class="title">
 </div>
 <div id="materialBody">

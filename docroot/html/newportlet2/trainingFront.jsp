@@ -2,28 +2,24 @@
 <!-- 
 <portlet:defineObjects/>
 <%
-/*PortletURL searchURL = renderResponse.createActionURL();
+/*PortletURL searchURL = renderResponse.createresourceURL();
 searchURL.setParameter(
 ActionRequest.ACTION_NAME, "search");*/
 %>
  -->
 
-<portlet:actionURL name="getTopCategories" var="getTopCategories"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+<portlet:resourceURL id="getTopCategories" var="getTopCategories">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getSubCategories" var="getSubCategories"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getSubCategories" var="getSubCategories">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getMaterialTitles" var="getMaterialTitles"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getMaterialTitles" var="getMaterialTitles">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
-<portlet:actionURL name="getTopQuestions" var="getTopQuestions"
-	windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
+</portlet:resourceURL>
+<portlet:resourceURL id="getTopQuestions" var="getTopQuestions">
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
-</portlet:actionURL>
+</portlet:resourceURL>
 <portlet:actionURL var="subCategoriesURL">
 	<portlet:param name="jspPage" value="/html/newportlet2/subCategories.jsp"/>
 	<portlet:param name="actionName" value="subCategories"/>
@@ -35,6 +31,14 @@ ActionRequest.ACTION_NAME, "search");*/
 <portlet:actionURL var="materialURL">
 	<portlet:param name="jspPage" value="/html/newportlet2/trainingItem.jsp"/>
 	<portlet:param name="actionName" value="materials"/>
+</portlet:actionURL>
+<portlet:actionURL var="addURL2">
+	<portlet:param name="jspPage" value="/html/newportlet2/add2.jsp"/>
+	<portlet:param name="actionName" value="add"/>
+</portlet:actionURL>
+<portlet:actionURL var="addURL">
+	<portlet:param name="jspPage" value="/html/newportlet2/add.jsp"/>
+	<portlet:param name="actionName" value="add2"/>
 </portlet:actionURL>
 
 
@@ -110,10 +114,7 @@ $(document).ready(function() {
 			});
 		});
 		
-		
-		
-		
-		
+		addAddLink($("#categories"), "addForm1", "<%=addURL.toString()%>");
 		
 		var request2 = jQuery.getJSON('<%=getTopQuestions%>');
 		request2.done(function(data) {
@@ -154,19 +155,36 @@ $(document).ready(function() {
 					.attr("value", data[i].question)
 					.appendTo(questionForm);
 			};
+			
+			addAddLink(questionsDiv, "addForm2", "<%=addURL2.toString()%>");
 		});
 	});
 });
-/*
-$(document).on("click", ".matTitle", function() {
-	console.log("matTitle clicked");
-	var params = {"id": $(this).attr("mat_id")};
-	var request = $.ajax({
-		url: '<%=materialURL%>',
-		data: params
-	});
-});
-*/
+
+function addAddLink(div, name, url) {
+	
+	var addSpan = $("<span>");
+	addSpan
+		.addClass("questionsSpan")
+		.appendTo(div);
+	var addForm = $("<form>");
+	addForm
+		.addClass("questionForm")
+		.attr("name", name)
+		.attr("method","POST")
+		.attr("action",url)
+		.appendTo(addSpan);
+	var addLink = $("<a>");
+	var linkStr = "javascript:document.forms['" + name + "'].submit()"
+	addLink
+		.addClass("questionLink")
+		.attr("href",linkStr)
+		.attr("id",name)
+		.attr("name", "title")
+		.html("Add new...")
+		.appendTo(addForm);
+}
+
 </script>
 </head>
 <body>
