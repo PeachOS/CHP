@@ -7,7 +7,7 @@
 		<portlet-class>com.test.NewPortlet2</portlet-class>
 		<init-param>
 			<name>view-template</name>
-			<value>/html/newportlet2/view.jsp</value>
+			<value>/html/newportlet2/DMA.jsp</value>
 		</init-param>
 		<init-param>
 			<name>uploadFolder</name>
