@@ -160,6 +160,38 @@ public class NewPortlet2 extends MVCPortlet {
 	/**
 	 * 
 	 * @param request
+	 *            Optional parameters:<br>
+	 *            name (String, will be compared to medical and common name of drugs),<br>
+	 *            msdcode (int)
+	 * @param response
+	 * @throws PortletException
+	 * @throws IOException
+	 */
+	
+	public void searchDrugs(ResourceRequest request, ResourceResponse response)
+			throws PortletException, IOException {
+		Date date = new Date();
+		System.out.println(dateFormat.format(date));
+		
+		JSONObject parameters = requestToJSONObject(request);
+		Connection con = null;
+		JSONArray list;
+		try {
+			con = DataBaseFunctions.getWebConnection();
+			list = DataBaseFunctions.searchDrugs(con,parameters);
+		} catch (SQLException e) {
+			JSONObject errorObject =  new JSONObject();
+			errorObject.put("error", "Database");
+			errorObject.put("details", e.getMessage());
+			writeMessage(response,errorObject);
+			return;
+		}
+		writeMessage(response,list);
+	}
+	
+	/**
+	 * 
+	 * @param request
 	 *            Possible parameters:<br>
 	 *            order_id (int),<br>
 	 *            order_start (String/Timestamp: yyyy-[m]m-[d]d hh:mm:ss),<br>
@@ -192,7 +224,6 @@ public class NewPortlet2 extends MVCPortlet {
 			return;
 		}
 		writeMessage(response,list);
-		
 	}
 
 	/**
