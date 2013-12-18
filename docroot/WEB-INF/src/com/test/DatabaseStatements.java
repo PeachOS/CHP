@@ -1,6 +1,10 @@
 package com.test;
 
 class DatabaseStatements {
+	static final String SEARCH_DRUGS = "SELECT * " +
+			"FROM drugs d " +
+			"WHERE d.msdcode = COALESCE(?,d.msdcode) " +
+			"AND (d.med_name LIKE '%'||?||'%' OR d.common_name LIKE '%'||?||'%') ";
 	static final String GET_ORDER_SUMMARIZED2 = "SELECT "
 			+ "o.id AS Order_ID, "
 			+ "o.timestamp AS order_timestamp, "
