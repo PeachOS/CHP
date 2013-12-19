@@ -98,8 +98,9 @@ public class NewPortlet2 extends MVCPortlet {
 		JSONObject parameters = requestToJSONObject(request);
 		
 		JSONArray list;
+		Connection con = null;
 		try {
-			Connection con = DataBaseFunctions.getWebConnection();
+			con = DataBaseFunctions.getWebConnection();
 			list = DataBaseFunctions.getCategories(con);
 		} catch (SQLException e) {	
 			JSONObject errorObject =  new JSONObject();
@@ -107,6 +108,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		
 		System.out.println("getDrugCategories response: " + list.toJSONString());
@@ -134,8 +137,9 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println(dateFormat.format(date));
 		JSONObject parameters = requestToJSONObject(request);
 		JSONArray list;
+		Connection con = null;
 		try {
-			Connection con = DataBaseFunctions.getWebConnection();
+			con = DataBaseFunctions.getWebConnection();
 			list = DataBaseFunctions.getDrugs(con,parameters);
 		} catch (SQLException e) {
 			JSONObject errorObject =  new JSONObject();
@@ -143,6 +147,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		
 		
@@ -185,6 +191,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,list);
 	}
@@ -222,6 +230,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,list);
 	}
@@ -247,66 +257,14 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,list);
 		
 	}
 	
-	/**
-	 * 
-	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_id" and "summarize = false" as parameters to achieve same functionality.
-	 */
-	
-	public void getOrderItems(ResourceRequest request, ResourceResponse response)
-			throws PortletException, IOException {
 
-		JSONObject parameters = requestToJSONObject(request);
-		parameters.put("summarize", "false");
-		Connection con = null;
-		JSONArray list;
-		try {
-			con = DataBaseFunctions.getWebConnection();
-			list = DataBaseFunctions.getOrderSummary2(con,parameters);
-		} catch (SQLException e) {
-			JSONObject errorObject =  new JSONObject();
-			errorObject.put("error", "Database");
-			errorObject.put("details", e.getMessage());
-			writeMessage(response,errorObject);
-			return;
-		}
-		
-
-		writeMessage(response,list);
-		
-	}
-
-	/**
-	 * 
-	 * @deprecated Replaced by {@link #getOrderSummary()}. Add "order_status : sent", "order_id" and "summarize : false" as parameters to achieve same functionality.
-	 */
-	
-	public void getSentOrderItems(ResourceRequest request, ResourceResponse response)
-			throws PortletException, IOException {
-
-		JSONObject parameters = requestToJSONObject(request);
-		parameters.put("order_status", "sent");
-		parameters.put("summarize", "false");
-		JSONArray list;
-		try {
-			Connection con = DataBaseFunctions.getWebConnection();
-			list = DataBaseFunctions.getOrderSummary2(con,parameters);
-		} catch (SQLException e) {
-			JSONObject errorObject =  new JSONObject();
-			errorObject.put("error", "Database");
-			errorObject.put("details", e.getMessage());
-			writeMessage(response,errorObject);
-			return;
-		}
-		writeMessage(response,list);
-		
-	}
-	
-	
 	/**
 	 * 
 	 * @param request
@@ -337,6 +295,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,"1");
 		
@@ -372,6 +332,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,"1");
 		
@@ -411,6 +373,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,"1");
 		
@@ -451,6 +415,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		writeMessage(response,"1");
 	}
@@ -483,6 +449,8 @@ public class NewPortlet2 extends MVCPortlet {
 			errorObject.put("details", e.getMessage());
 			writeMessage(response,errorObject);
 			return;
+		} finally {
+			try {con.close();} catch (SQLException e) {e.printStackTrace();}
 		}
 		HttpServletResponse httpResponse = PortalUtil.getHttpServletResponse(response);
 		httpResponse.setContentType("application/json;charset=UTF-8");
