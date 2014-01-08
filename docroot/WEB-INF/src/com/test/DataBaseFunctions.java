@@ -32,6 +32,8 @@ public class DataBaseFunctions {
 	static String USER;
 	static String PASSWORD;
 
+	static Connection connection = null;
+
 	static PreparedStatement getOrderNonSummarizedStatement = null;
 
 	static PreparedStatement getOrderSummarizedStatement = null;
@@ -68,56 +70,57 @@ public class DataBaseFunctions {
 			PASSWORD = "postgres";
 			loaded = true;
 		}
-		Connection con = null;
-		try {
-			if (pgSimpleDataSourceWeb == null) {
-				pgSimpleDataSourceWeb = new PGSimpleDataSource();
-				pgSimpleDataSourceWeb.setServerName(URL);
-				pgSimpleDataSourceWeb.setPortNumber(Integer.valueOf(PORT));
-				pgSimpleDataSourceWeb.setDatabaseName(DATABASE);
-				pgSimpleDataSourceWeb.setUser(USER);
-				pgSimpleDataSourceWeb.setPassword(PASSWORD);
+		if (pgSimpleDataSourceWeb == null) {
+			pgSimpleDataSourceWeb = new PGSimpleDataSource();
+			pgSimpleDataSourceWeb.setServerName(URL);
+			pgSimpleDataSourceWeb.setPortNumber(Integer.valueOf(PORT));
+			pgSimpleDataSourceWeb.setDatabaseName(DATABASE);
+			pgSimpleDataSourceWeb.setUser(USER);
+			pgSimpleDataSourceWeb.setPassword(PASSWORD);
 
+		}
+		if (connection == null) {
+			try {
+				connection = pgSimpleDataSourceWeb.getConnection();
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				throw new SQLException(String.format(
+						"Could not properly build a connection to Database.\n"
+								+ "Function: getWebConnection()\n"
+								+ "Details: %s\n"
+								+ "pgSimpleDataSourceWeb == null: %B\n"
+								+ "con == null: %B", e.getMessage(),
+						pgSimpleDataSourceWeb == null, connection == null));
 			}
-			con = pgSimpleDataSourceWeb.getConnection();
-			con.setAutoCommit(true);
-		} catch (SQLException e) {
-			throw new SQLException(String.format(
-					"Could not properly build a connection to Database.\n"
-							+ "Function: getWebConnection()\n"
-							+ "Details: %s\n"
-							+ "pgSimpleDataSourceWeb == null: %B\n"
-							+ "con == null: %B", e.getMessage(),
-					pgSimpleDataSourceWeb == null, con == null));
+			try {
+				getOrderNonSummarizedStatement = connection
+						.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
+				getOrderSummarizedStatement = connection
+						.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
+				getDrugsStatement = connection
+						.prepareStatement(DatabaseStatements.GET_DRUGS);
+				addDrugStatement = connection
+						.prepareStatement(DatabaseStatements.ADD_DRUG);
+				getCategoryNamesStatement = connection
+						.prepareStatement(DatabaseStatements.GET_CATEGORY_NAMES);
+				updateInventoryStatenment = connection
+						.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
+				updateOrderStatusStatement = connection
+						.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
+				updateDrugStatement = connection
+						.prepareStatement(DatabaseStatements.UPDATE_DRUG);
+				addOrderStatement = connection
+						.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
+				searchDrugsStatement = connection
+						.prepareStatement(DatabaseStatements.SEARCH_DRUGS);
+			} catch (SQLException e) {
+				throw new SQLException(String.format(
+						"Could not prepare the statements.\n"
+								+ "Function: getWebConnection()\n"
+								+ "Details: %s", e.getMessage()));
+			}
 		}
-		try {
-			getOrderNonSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
-			getOrderSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
-			getDrugsStatement = con
-					.prepareStatement(DatabaseStatements.GET_DRUGS);
-			addDrugStatement = con
-					.prepareStatement(DatabaseStatements.ADD_DRUG);
-			getCategoryNamesStatement = con
-					.prepareStatement(DatabaseStatements.GET_CATEGORY_NAMES);
-			updateInventoryStatenment = con
-					.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
-			updateOrderStatusStatement = con
-					.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
-			updateDrugStatement = con
-					.prepareStatement(DatabaseStatements.UPDATE_DRUG);
-			addOrderStatement = con
-					.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
-			searchDrugsStatement = con
-					.prepareStatement(DatabaseStatements.SEARCH_DRUGS);
-			return con;
-		} catch (SQLException e) {
-			throw new SQLException(String.format(
-					"Could not prepare the statements.\n"
-							+ "Function: getWebConnection()\n" + "Details: %s",
-					e.getMessage()));
-		}
+		return connection;
 	}
 
 	/**
@@ -296,21 +299,22 @@ public class DataBaseFunctions {
 	/**
 	 * 
 	 * @param con
-	 * @param parameters 
+	 * @param parameters
 	 *            JSONObject with the following OPTIONAL parameters:<br>
-	 *            name : (String),
-	 *            msdcode : (int)
+	 *            name : (String), msdcode : (int)
 	 * @return
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
-	public static JSONArray searchDrugs(Connection con, JSONObject parameters) throws SQLException {
+	public static JSONArray searchDrugs(Connection con, JSONObject parameters)
+			throws SQLException {
 		Object name = parameters.get("name");
 		Object msdCodeS = parameters.get("msdcode");
 
 		try {
 			int p = 1;
 			if (msdCodeS != null && msdCodeS.toString().matches("[0-9]*")) {
-				searchDrugsStatement.setInt(p++, Integer.valueOf(msdCodeS.toString()));
+				searchDrugsStatement.setInt(p++,
+						Integer.valueOf(msdCodeS.toString()));
 			} else {
 				searchDrugsStatement.setNull(p++, Types.INTEGER);
 			}
@@ -327,7 +331,7 @@ public class DataBaseFunctions {
 					"Adding parameters to the statement failed\n"
 							+ "Function: searchDrugs()\n" + "Statement: %s\n"
 							+ "Parameters: %s\n" + "Details: %s",
-							searchDrugsStatement.toString(),
+					searchDrugsStatement.toString(),
 					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		ResultSet rs;
@@ -340,7 +344,7 @@ public class DataBaseFunctions {
 					"Execution of Statement failed.\n"
 							+ "Function: searchDrugs()\n" + "Statement: %s\n"
 							+ "Parameters: %s\n" + "Details: %s",
-							searchDrugsStatement.toString(),
+					searchDrugsStatement.toString(),
 					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 
@@ -900,9 +904,9 @@ public class DataBaseFunctions {
 			Connection con = getWebConnection();
 			// testAddOrder(con);
 			// testUpdateDrug(con);
-//			testGetCategories(con);
+			// testGetCategories(con);
 			// testGetOrderSummary(con);
-			 tryNewStuff();
+			tryNewStuff();
 			// testGetDrugs(con);
 			// testAddDrug(con);
 			con.close();
