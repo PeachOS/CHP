@@ -26,12 +26,11 @@ import com.test.DatabaseStatements;
 
 public class DataBaseFunctions {
 	static boolean loaded = false;
-	static String URL;
-	static String PORT;
-	static String DATABASE;
-	static String USER;
-	static String PASSWORD;
-
+	static String URL = "localhost";
+	static String PORT = "5433";
+	static String DATABASE = "chpv1_small";
+	static String USER = "postgres";
+	static String PASSWORD = "postgres";
 	static Connection connection = null;
 
 	static PreparedStatement getOrderNonSummarizedStatement = null;
@@ -62,14 +61,6 @@ public class DataBaseFunctions {
 	 * @throws SQLException
 	 */
 	public static Connection getWebConnection() throws SQLException {
-		if (!loaded) {
-			URL = "localhost";
-			PORT = "5433";
-			DATABASE = "chpv1_small";
-			USER = "postgres";
-			PASSWORD = "postgres";
-			loaded = true;
-		}
 		if (pgSimpleDataSourceWeb == null) {
 			pgSimpleDataSourceWeb = new PGSimpleDataSource();
 			pgSimpleDataSourceWeb.setServerName(URL);
@@ -79,7 +70,7 @@ public class DataBaseFunctions {
 			pgSimpleDataSourceWeb.setPassword(PASSWORD);
 
 		}
-		if (connection == null) {
+		if (connection == null || connection.isClosed()) {
 			try {
 				connection = pgSimpleDataSourceWeb.getConnection();
 				connection.setAutoCommit(true);
@@ -291,8 +282,9 @@ public class DataBaseFunctions {
 					getDrugsStatement.toString(),
 					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
-
-		return ResultSetHelper.resultSetToJSONArray(rs);
+		JSONArray arr = ResultSetHelper.resultSetToJSONArray(rs);
+		System.out.println(Helper.niceJsonPrint(arr, ""));
+		return arr;
 
 	}
 
@@ -904,10 +896,10 @@ public class DataBaseFunctions {
 			Connection con = getWebConnection();
 			// testAddOrder(con);
 			// testUpdateDrug(con);
-			// testGetCategories(con);
-			// testGetOrderSummary(con);
-			tryNewStuff();
-			// testGetDrugs(con);
+//			 testGetCategories(con);
+//			 testGetOrderSummary(con);
+//			tryNewStuff();
+			 testGetDrugs(con);
 			// testAddDrug(con);
 			con.close();
 		} catch (SQLException e) {
