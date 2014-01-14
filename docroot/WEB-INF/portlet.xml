@@ -2,9 +2,9 @@
 
 <portlet-app xmlns="http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd http://java.sun.com/xml/ns/portlet/portlet-app_2_0.xsd" version="2.0">
 	<portlet>
-		<portlet-name>newportlet2</portlet-name>
-		<display-name>New Portlet2</display-name>
-		<portlet-class>com.test.NewPortlet2</portlet-class>
+		<portlet-name>DMA</portlet-name>
+		<display-name>DMA</display-name>
+		<portlet-class>com.chp.dma.NewPortlet2</portlet-class>
 		<init-param>
 			<name>view-template</name>
 			<value>/html/newportlet2/DMA.jsp</value>
@@ -19,8 +19,8 @@
 			<portlet-mode>view</portlet-mode>
 		</supports>
 		<portlet-info>
-			<title>New Portlet2</title>
-			<short-title>New Portlet2</short-title>
+			<title>Drug Management Application</title>
+			<short-title>DMA</short-title>
 			<keywords></keywords>
 		</portlet-info>
 		<security-role-ref>

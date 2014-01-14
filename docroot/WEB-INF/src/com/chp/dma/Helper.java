@@ -1,4 +1,4 @@
-package com.test;
+package com.chp.dma;
 
 import java.io.BufferedReader;
 import java.io.IOException;

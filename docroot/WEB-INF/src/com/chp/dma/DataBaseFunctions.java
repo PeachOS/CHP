@@ -1,4 +1,4 @@
-package com.test;
+package com.chp.dma;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,7 +22,7 @@ import org.json.simple.JSONObject;
 import org.postgresql.PGStatement;
 import org.postgresql.ds.PGSimpleDataSource;
 
-import com.test.DatabaseStatements;
+import com.chp.dma.DatabaseStatements;
 
 public class DataBaseFunctions {
 	static boolean loaded = false;
@@ -60,7 +60,7 @@ public class DataBaseFunctions {
 	public static Connection getWebConnection() throws SQLException {
 		if (!loaded) {
 			URL = "localhost";
-			PORT = "5433";
+			PORT = "5432";
 			DATABASE = "chpv1_small";
 			USER = "postgres";
 			PASSWORD = "postgres";

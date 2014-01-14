@@ -1,4 +1,4 @@
-package com.test;
+package com.chp.dma;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,17 +65,6 @@ public class NewPortlet2 extends MVCPortlet {
 		httpResponse.setContentType("application/plain;charset=UTF-8");
 		ServletResponseUtil.write(httpResponse, string);	
 	}
-	
-	
- 
-	public void updateBook(ResourceRequest ResourceRequest,
-			ResourceResponse ResourceResponse)
-			throws IOException, PortletException {
-			String bookTitle = ParamUtil.getString(ResourceRequest, "bookTitle");
-			String author = ParamUtil.getString(ResourceRequest, "author");
-			System.out.println("Your inputs ==> " + bookTitle + ", " + author);
-			}
-	
 
 	// DMA functions
 	
@@ -95,7 +84,6 @@ public class NewPortlet2 extends MVCPortlet {
 		System.out.println("getDrugCategories reached");
 		Date date = new Date();
 		System.out.println(dateFormat.format(date));
-		JSONObject parameters = requestToJSONObject(request);
 		
 		JSONArray list;
 		try {

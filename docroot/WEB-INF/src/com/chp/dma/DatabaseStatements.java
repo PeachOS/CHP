@@ -1,4 +1,4 @@
-package com.test;
+package com.chp.dma;
 
 class DatabaseStatements {
 	static final String GET_ORDER_SUMMARIZED2 = "SELECT "

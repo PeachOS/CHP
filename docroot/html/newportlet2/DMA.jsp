@@ -34,6 +34,8 @@
 	<portlet:param name="ajaxAction" value="getData"></portlet:param>
 </portlet:resourceURL>
 
+<portlet:defineObjects/>
+
 <!--  code from DMA, index.html -->
 <!DOCTYPE HTML>
 <html>
@@ -46,10 +48,10 @@
 //DMA code, from script.js
 
 $(document).ready(function(){
+	
     sideEl = 1;
 	mod = 0; // mod = 0 -> Inventory; mod = 1 -> New Order; mod = 2 -> View Order; mod = 3 -> Incoming package; mod = 4 -> Add to Inventory
 	submod = 0;
-	//dbUrl = "http://admin:123456@127.0.0.1:8080/dmaaglarbri";
 	dbUrl = "http://admin:123456@" + location.host;
 	dbName = "facility_kirehe";
 	clientDoc = "client_v2";
@@ -917,8 +919,8 @@ function drawTextTable(tbody){
 			reduceCell.appendTo(cell2);
 			var updateDiv = $("<div>");
 			var editDiv = $("<div>");
-			updateBtn.appendTo(updateDiv);
 			editBtn.appendTo(editDiv);
+			updateBtn.appendTo(updateDiv);
 			updateDiv.appendTo(cell3);
 			editDiv.appendTo(cell3);
 			break;

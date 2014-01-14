@@ -3,7 +3,7 @@
 
 <liferay-portlet-app>
 	<portlet>
-		<portlet-name>newportlet2</portlet-name>
+		<portlet-name>DMA</portlet-name>
 		<icon>icon.png</icon>
 		<use-default-template>false</use-default-template>
 		<instanceable>false</instanceable>
