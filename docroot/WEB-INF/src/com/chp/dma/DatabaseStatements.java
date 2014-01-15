@@ -1,6 +1,10 @@
 package com.chp.dma;
 
 class DatabaseStatements {
+	static final String SEARCH_DRUGS = "SELECT * " +
+			"FROM drugs d " +
+			"WHERE d.msdcode = COALESCE(?,d.msdcode) " +
+			"AND (d.med_name LIKE '%'||?||'%' OR d.common_name LIKE '%'||?||'%') ";
 	static final String GET_ORDER_SUMMARIZED2 = "SELECT "
 			+ "o.id AS Order_ID, "
 			+ "o.timestamp AS order_timestamp, "
@@ -16,7 +20,7 @@ class DatabaseStatements {
 			+ "AND o.status = COALESCE(?,o.status) "
 			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
 			+ "GROUP BY o.facility_id,o.id,o.timestamp,o.status "
-			+ "ORDER BY o.id ASC";
+			+ "ORDER BY o.timestamp DESC";
 
 	static final String GET_ORDER_NON_SUMMARIZED2 = "SELECT "
 			+ "o.id AS Order_ID, "
@@ -33,7 +37,7 @@ class DatabaseStatements {
 			+ "AND o.status = COALESCE(?,o.status) "
 			+ "AND o.facility_id = COALESCE(?,o.facility_id) "
 			+ "GROUP BY o.facility_id,o.id,o.timestamp,o.status "
-			+ "ORDER BY o.id ASC";
+			+ "ORDER BY o.timestamp DESC";
 
 	static final String UPDATE_INVENTORY = "SELECT update_inventory(?,?,?)";
 

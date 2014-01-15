@@ -26,11 +26,12 @@ import com.chp.dma.DatabaseStatements;
 
 public class DataBaseFunctions {
 	static boolean loaded = false;
-	static String URL;
-	static String PORT;
-	static String DATABASE;
-	static String USER;
-	static String PASSWORD;
+	static String URL = "localhost";
+	static String PORT = "5432";
+	static String DATABASE = "chpv1_small";
+	static String USER = "postgres";
+	static String PASSWORD = "postgres";
+	static Connection connection = null;
 
 	static PreparedStatement getOrderNonSummarizedStatement = null;
 
@@ -50,6 +51,8 @@ public class DataBaseFunctions {
 
 	static PreparedStatement addOrderStatement = null;
 
+	static PreparedStatement searchDrugsStatement = null;
+
 	private static PGSimpleDataSource pgSimpleDataSourceWeb = null;
 
 	/**
@@ -58,62 +61,57 @@ public class DataBaseFunctions {
 	 * @throws SQLException
 	 */
 	public static Connection getWebConnection() throws SQLException {
-		if (!loaded) {
-			URL = "localhost";
-			PORT = "5432";
-			DATABASE = "chpv1_small";
-			USER = "postgres";
-			PASSWORD = "postgres";
-			loaded = true;
-		}
-		Connection con = null;
-		try {
-			if (pgSimpleDataSourceWeb == null) {
-				pgSimpleDataSourceWeb = new PGSimpleDataSource();
-				pgSimpleDataSourceWeb.setServerName(URL);
-				pgSimpleDataSourceWeb.setPortNumber(Integer.valueOf(PORT));
-				pgSimpleDataSourceWeb.setDatabaseName(DATABASE);
-				pgSimpleDataSourceWeb.setUser(USER);
-				pgSimpleDataSourceWeb.setPassword(PASSWORD);
+		if (pgSimpleDataSourceWeb == null) {
+			pgSimpleDataSourceWeb = new PGSimpleDataSource();
+			pgSimpleDataSourceWeb.setServerName(URL);
+			pgSimpleDataSourceWeb.setPortNumber(Integer.valueOf(PORT));
+			pgSimpleDataSourceWeb.setDatabaseName(DATABASE);
+			pgSimpleDataSourceWeb.setUser(USER);
+			pgSimpleDataSourceWeb.setPassword(PASSWORD);
 
+		}
+		if (connection == null || connection.isClosed()) {
+			try {
+				connection = pgSimpleDataSourceWeb.getConnection();
+				connection.setAutoCommit(true);
+			} catch (SQLException e) {
+				throw new SQLException(String.format(
+						"Could not properly build a connection to Database.\n"
+								+ "Function: getWebConnection()\n"
+								+ "Details: %s\n"
+								+ "pgSimpleDataSourceWeb == null: %B\n"
+								+ "con == null: %B", e.getMessage(),
+						pgSimpleDataSourceWeb == null, connection == null));
 			}
-			con = pgSimpleDataSourceWeb.getConnection();
-			con.setAutoCommit(true);
-		} catch (SQLException e) {
-			throw new SQLException(String.format(
-					"Could not properly build a connection to Database.\n"
-							+ "Function: getWebConnection()\n"
-							+ "Details: %s\n"
-							+ "pgSimpleDataSourceWeb == null: %B\n"
-							+ "con == null: %B", e.getMessage(),
-					pgSimpleDataSourceWeb == null, con == null));
+			try {
+				getOrderNonSummarizedStatement = connection
+						.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
+				getOrderSummarizedStatement = connection
+						.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
+				getDrugsStatement = connection
+						.prepareStatement(DatabaseStatements.GET_DRUGS);
+				addDrugStatement = connection
+						.prepareStatement(DatabaseStatements.ADD_DRUG);
+				getCategoryNamesStatement = connection
+						.prepareStatement(DatabaseStatements.GET_CATEGORY_NAMES);
+				updateInventoryStatenment = connection
+						.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
+				updateOrderStatusStatement = connection
+						.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
+				updateDrugStatement = connection
+						.prepareStatement(DatabaseStatements.UPDATE_DRUG);
+				addOrderStatement = connection
+						.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
+				searchDrugsStatement = connection
+						.prepareStatement(DatabaseStatements.SEARCH_DRUGS);
+			} catch (SQLException e) {
+				throw new SQLException(String.format(
+						"Could not prepare the statements.\n"
+								+ "Function: getWebConnection()\n"
+								+ "Details: %s", e.getMessage()));
+			}
 		}
-		try {
-			getOrderNonSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_NON_SUMMARIZED2);
-			getOrderSummarizedStatement = con
-					.prepareStatement(DatabaseStatements.GET_ORDER_SUMMARIZED2);
-			getDrugsStatement = con
-					.prepareStatement(DatabaseStatements.GET_DRUGS);
-			addDrugStatement = con
-					.prepareStatement(DatabaseStatements.ADD_DRUG);
-			getCategoryNamesStatement = con
-					.prepareStatement(DatabaseStatements.GET_CATEGORY_NAMES);
-			updateInventoryStatenment = con
-					.prepareStatement(DatabaseStatements.UPDATE_INVENTORY);
-			updateOrderStatusStatement = con
-					.prepareStatement(DatabaseStatements.UPDATE_ORDER_STATUS);
-			updateDrugStatement = con
-					.prepareStatement(DatabaseStatements.UPDATE_DRUG);
-			addOrderStatement = con
-					.prepareStatement(DatabaseStatements.ADD_ORDER_NEW);
-			return con;
-		} catch (SQLException e) {
-			throw new SQLException(String.format(
-					"Could not prepare the statements.\n"
-							+ "Function: getWebConnection()\n" + "Details: %s",
-					e.getMessage()));
-		}
+		return connection;
 	}
 
 	/**
@@ -163,10 +161,10 @@ public class DataBaseFunctions {
 		String order_statusS = (String) parameters.get("status");
 
 		if (facility_idS == null || order_statusS == null)
-			throw new IllegalArgumentException(
-					String.format("facility_id and order_status were not provided as parameter.\n"
-							+ "Function: addOrder2()\n" +
-							"Parameters: %s",Helper.niceJsonPrint(parameters, "")));
+			throw new IllegalArgumentException(String.format(
+					"facility_id and order_status were not provided as parameter.\n"
+							+ "Function: addOrder2()\n" + "Parameters: %s",
+					Helper.niceJsonPrint(parameters, "")));
 
 		Integer facility_id = Integer.valueOf(facility_idS);
 		Integer status = Integer.valueOf(order_statusS);
@@ -200,9 +198,9 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			throw new SQLException(String.format(
 					"Adding parameters to the statement failed\n"
-							+ "Function: addOrder2()\n" + "Parameters: %s\n" +
-									"Details: %s",
-									Helper.niceJsonPrint(parameters, ""),e.getMessage()));
+							+ "Function: addOrder2()\n" + "Parameters: %s\n"
+							+ "Details: %s",
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		try {
 			addOrderStatement.executeUpdate();
@@ -210,9 +208,9 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Execution of Statement failed.\n"
 							+ "Function: addOrder2()\n" + "Statement: %s\n"
-							+ "Parameters: %s\n" +
-							"Details: %s", addOrderStatement.toString(),
-							Helper.niceJsonPrint(parameters, ""),e.getMessage()));
+							+ "Parameters: %s\n" + "Details: %s",
+					addOrderStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 	}
 
@@ -240,10 +238,10 @@ public class DataBaseFunctions {
 		String facility_idS = (String) parameters.get("facility_id");
 
 		if (facility_idS == null)
-			throw new IllegalArgumentException(
-					String.format("facility_id was not provided as parameter.\n"
-							+ "Function: getDrugs()\n" +
-							"Parameters: %s",Helper.niceJsonPrint(parameters, "")));
+			throw new IllegalArgumentException(String.format(
+					"facility_id was not provided as parameter.\n"
+							+ "Function: getDrugs()\n" + "Parameters: %s",
+					Helper.niceJsonPrint(parameters, "")));
 
 		try {
 			Integer facility_id = Integer.valueOf(facility_idS);
@@ -267,9 +265,9 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Adding parameters to the statement failed\n"
 							+ "Function: getDrugs()\n" + "Statement: %s\n"
-							+ "Parameters: %s\n" +
-							"Details: %s", getDrugsStatement.toString(),
-							Helper.niceJsonPrint(parameters, ""),e.getMessage()));
+							+ "Parameters: %s\n" + "Details: %s",
+					getDrugsStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		ResultSet rs;
 		try {
@@ -280,13 +278,69 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Execution of Statement failed.\n"
 							+ "Function: getDrugs()\n" + "Statement: %s\n"
-							+ "Parameters: %s\n" +
-							"Details: %s", getDrugsStatement.toString(),Helper.niceJsonPrint(parameters, ""),
-					e.getMessage()));
+							+ "Parameters: %s\n" + "Details: %s",
+					getDrugsStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
+		}
+		JSONArray arr = ResultSetHelper.resultSetToJSONArray(rs);
+		System.out.println(Helper.niceJsonPrint(arr, ""));
+		return arr;
+
+	}
+
+	/**
+	 * 
+	 * @param con
+	 * @param parameters
+	 *            JSONObject with the following OPTIONAL parameters:<br>
+	 *            name : (String), msdcode : (int)
+	 * @return
+	 * @throws SQLException
+	 */
+	public static JSONArray searchDrugs(Connection con, JSONObject parameters)
+			throws SQLException {
+		Object name = parameters.get("name");
+		Object msdCodeS = parameters.get("msdcode");
+
+		try {
+			int p = 1;
+			if (msdCodeS != null && msdCodeS.toString().matches("[0-9]*")) {
+				searchDrugsStatement.setInt(p++,
+						Integer.valueOf(msdCodeS.toString()));
+			} else {
+				searchDrugsStatement.setNull(p++, Types.INTEGER);
+			}
+
+			if (name != null) {
+				searchDrugsStatement.setString(p++, name.toString());
+				searchDrugsStatement.setString(p++, name.toString());
+			} else {
+				searchDrugsStatement.setNull(p++, Types.VARCHAR);
+				searchDrugsStatement.setNull(p++, Types.VARCHAR);
+			}
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: searchDrugs()\n" + "Statement: %s\n"
+							+ "Parameters: %s\n" + "Details: %s",
+					searchDrugsStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
+		}
+		ResultSet rs;
+		try {
+			System.out.println(searchDrugsStatement.toString());
+			rs = searchDrugsStatement.executeQuery();
+
+		} catch (SQLException e) {
+			throw new SQLException(String.format(
+					"Execution of Statement failed.\n"
+							+ "Function: searchDrugs()\n" + "Statement: %s\n"
+							+ "Parameters: %s\n" + "Details: %s",
+					searchDrugsStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 
 		return ResultSetHelper.resultSetToJSONArray(rs);
-
 	}
 
 	/**
@@ -363,9 +417,9 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			throw new SQLException(String.format(
 					"Adding parameters to the statement failed\n"
-							+ "Function: getOrderSummary2()\n" + "Parameters: %s\n" +
-									"Details: %s",Helper.niceJsonPrint(parameters, ""),
-					e.getMessage()));
+							+ "Function: getOrderSummary2()\n"
+							+ "Parameters: %s\n" + "Details: %s",
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		ResultSet rs;
 		try {
@@ -375,9 +429,9 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Execution of Statement failed.\n"
 							+ "Function: getOrderSummary2()\n"
-							+ "Statement: %s\n" + "Parameters: %s\n" +
-									"Details: %s",
-					pstmt.toString(), Helper.niceJsonPrint(parameters, ""), e.getMessage()));
+							+ "Statement: %s\n" + "Parameters: %s\n"
+							+ "Details: %s", pstmt.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		return ResultSetHelper.resultSetToJSONArray(rs);
 
@@ -400,22 +454,22 @@ public class DataBaseFunctions {
 		Integer status = Integer.valueOf((String) parameters.get("status"));
 
 		if (order_id == null || status == null)
-			throw new IllegalArgumentException(
-					String.format("order_id and status were not provided as parameters.\n"
-							+ "Function: updateOrderStatus\n" +
-							"Parameters: %s",Helper.niceJsonPrint(parameters, "")));
+			throw new IllegalArgumentException(String.format(
+					"order_id and status were not provided as parameters.\n"
+							+ "Function: updateOrderStatus\n"
+							+ "Parameters: %s",
+					Helper.niceJsonPrint(parameters, "")));
 
 		try {
 			updateOrderStatusStatement.setInt(1, status);
 			updateOrderStatusStatement.setInt(2, order_id);
 
 		} catch (SQLException e) {
-			throw new SQLException(
-					String.format(
-							"Adding parameters to the statement failed\n"
-									+ "Function: updateOrderStatus()\n"
-									+ "Parameters: %s\n" +
-									"Details: %s", Helper.niceJsonPrint(parameters, ""),e.getMessage()));
+			throw new SQLException(String.format(
+					"Adding parameters to the statement failed\n"
+							+ "Function: updateOrderStatus()\n"
+							+ "Parameters: %s\n" + "Details: %s",
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		try {
 			updateOrderStatusStatement.executeUpdate();
@@ -423,9 +477,10 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Execution of Statement failed.\n"
 							+ "Function: updateOrderStatus()\n"
-							+ "Statement: %s\n" + "Parameters: %s\n" +
-									"Details: %s",
-					updateOrderStatusStatement.toString(), Helper.niceJsonPrint(parameters, ""), e.getMessage()));
+							+ "Statement: %s\n" + "Parameters: %s\n"
+							+ "Details: %s",
+					updateOrderStatusStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 
 	}
@@ -450,10 +505,11 @@ public class DataBaseFunctions {
 				.get("facility_id"));
 
 		if (facility_id == null)
-			throw new IllegalArgumentException(
-					String.format("facility_id was not provided as parameter.\n"
-							+ "Function: updateInventory()\n" +
-							"Parameters: %s",Helper.niceJsonPrint(parameters, "")));
+			throw new IllegalArgumentException(String.format(
+					"facility_id was not provided as parameter.\n"
+							+ "Function: updateInventory()\n"
+							+ "Parameters: %s",
+					Helper.niceJsonPrint(parameters, "")));
 
 		@SuppressWarnings("unchecked")
 		Set<Map.Entry<Object, Object>> a = parameters.entrySet();
@@ -472,8 +528,9 @@ public class DataBaseFunctions {
 					throw new SQLException(String.format(
 							"Adding parameters to the statement failed\n"
 									+ "Function: updateInventory()\n"
-									+ "Parameters: %s\n" +
-									"Details: %s", Helper.niceJsonPrint(parameters, ""),e.getMessage()));
+									+ "Parameters: %s\n" + "Details: %s",
+							Helper.niceJsonPrint(parameters, ""),
+							e.getMessage()));
 				}
 				try {
 					updateInventoryStatenment.executeQuery();
@@ -481,9 +538,10 @@ public class DataBaseFunctions {
 					throw new SQLException(String.format(
 							"Execution of Statement failed.\n"
 									+ "Function: updateInventory()\n"
-									+ "Statement: %s\n" + "Parameters: %s\n" +
-											"Details: %s",
-							updateInventoryStatenment.toString(),Helper.niceJsonPrint(parameters, ""),
+									+ "Statement: %s\n" + "Parameters: %s\n"
+									+ "Details: %s",
+							updateInventoryStatenment.toString(),
+							Helper.niceJsonPrint(parameters, ""),
 							e.getMessage()));
 				}
 			}
@@ -522,10 +580,10 @@ public class DataBaseFunctions {
 
 		if (msdcodeS == null || category_idS == null || med_name == null
 				|| unit_priceS == null)
-			throw new IllegalArgumentException(
-					String.format("msdcode, category_id, med_name and unit_price are mandatory parameters.\n"
-							+ "Function: addDrug()\n" +
-							"Parameters: %s",Helper.niceJsonPrint(parameters, "")));
+			throw new IllegalArgumentException(String.format(
+					"msdcode, category_id, med_name and unit_price are mandatory parameters.\n"
+							+ "Function: addDrug()\n" + "Parameters: %s",
+					Helper.niceJsonPrint(parameters, "")));
 
 		Double unit_price = Double.valueOf(unit_priceS);
 
@@ -550,9 +608,9 @@ public class DataBaseFunctions {
 		} catch (SQLException e) {
 			throw new SQLException(String.format(
 					"Adding parameters to the statement failed\n"
-							+ "Function: addDrug()\n" + "Parameters: %s\n" +
-									"Details: %s",Helper.niceJsonPrint(parameters, ""),
-					e.getMessage()));
+							+ "Function: addDrug()\n" + "Parameters: %s\n"
+							+ "Details: %s",
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 		try {
 			System.out.println(addDrugStatement.toString());
@@ -563,9 +621,9 @@ public class DataBaseFunctions {
 			throw new SQLException(String.format(
 					"Execution of Statement failed.\n"
 							+ "Function: addDrug()\n" + "Statement: %s\n"
-							+ "Parameters: %s\n" +
-							"Details: %s", addDrugStatement.toString(),Helper.niceJsonPrint(parameters, ""),
-					e.getMessage()));
+							+ "Parameters: %s\n" + "Details: %s",
+					addDrugStatement.toString(),
+					Helper.niceJsonPrint(parameters, ""), e.getMessage()));
 		}
 	}
 
@@ -824,8 +882,11 @@ public class DataBaseFunctions {
 	}
 
 	@SuppressWarnings({ "unused" })
-	private static void tryNewStuff() {
-		System.out.println("moep");
+	private static void tryNewStuff() throws SQLException {
+		JSONObject input = new JSONObject();
+		input.put("name", "s");
+		JSONArray arr = searchDrugs(getWebConnection(), input);
+		System.out.println(Helper.niceJsonPrint(arr, ""));
 
 	}
 
@@ -835,10 +896,10 @@ public class DataBaseFunctions {
 			Connection con = getWebConnection();
 			// testAddOrder(con);
 			// testUpdateDrug(con);
-			testGetCategories(con);
-			// testGetOrderSummary(con);
-			// tryNewStuff();
-			// testGetDrugs(con);
+//			 testGetCategories(con);
+//			 testGetOrderSummary(con);
+//			tryNewStuff();
+			 testGetDrugs(con);
 			// testAddDrug(con);
 			con.close();
 		} catch (SQLException e) {
